@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Phụ Huynh - Xác Nhận</title>
+    <style>
+        body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; 
+               background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; 
+               background-size: cover; font-family: 'Segoe UI', sans-serif; color: white; }
+        .glass-card { background: rgba(0, 0, 0, 0.55); border-radius: 30px; padding: 40px; text-align: center; 
+                      width: 360px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 15px 35px rgba(0,0,0,0.6); backdrop-filter: blur(15px); }
+        h2 { letter-spacing: 1px; margin-bottom: 25px; text-transform: uppercase; font-size: 20px; color: #fff; }
+        .info-name { font-size: 22px; margin-bottom: 10px; font-weight: bold; color: #00f2fe; }
+        .btn-score { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #f1c40f; 
+                     color: #2d3436; font-weight: bold; margin-bottom: 20px; font-size: 18px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); }
+        .status-box { background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 15px; font-size: 14px; 
+                      color: #ffeaa7; margin-bottom: 25px; border-left: 5px solid #00f2fe; text-align: left; line-height: 1.6; }
+        .btn-approve { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #00b894; 
+                       color: white; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 5px 20px rgba(0, 184, 148, 0.4); transition: 0.3s; }
+        .btn-approve:hover { background: #009476; transform: translateY(-2px); }
+        .btn-exit { background: none; border: none; color: white; opacity: 0.5; cursor: pointer; margin-top: 25px; font-size: 13px; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="glass-card">
+        <h2>CỔNG PHỤ HUYNH</h2>
+        
+        <div id="p-student-name" class="info-name">Đang tải...</div>
+        
+        <button id="p-student-score-btn" class="btn-score">Đang tải điểm...</button>
+        
+        <div id="p-student-status" class="status-box">
+            Đang kiểm tra kết nối với nhà trường...
+        </div>
+
+        <div id="parent-action-zone" style="display: none; margin-top: 10px;">
+            <p style="font-size: 12px; color: #fff; margin-bottom: 12px; opacity: 0.8;">Hệ thống ghi nhận đơn xin nghỉ, phụ huynh vui lòng xác nhận:</p>
+            <button class="btn-approve" onclick="duyetDon()">✓ XÁC NHẬN CHO CON NGHỈ</button>
+        </div>
+
+        <button class="btn-exit" onclick="window.location.href='index.html'">Thoát hệ thống</button>
+    </div>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="firebase.config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
