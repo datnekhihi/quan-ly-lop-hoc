@@ -138,9 +138,6 @@ function loadStudentData() {
         localStorage.setItem("user-class", data.lop || "12A1"); // Thay 'lop' bằng tên cột lớp trên Firebase của bạn
         // Nếu học sinh đã đăng ký mặt, lưu vào máy để so sánh khi điểm danh
         // Nếu học sinh đã đăng ký mặt, tải mẫu về máy để so sánh
-if (data.face_data) {
-    localStorage.setItem("user-face", JSON.stringify(data.face_data));
-}
     if (data.face_data) {
     localStorage.setItem("user-face", JSON.stringify(data.face_data));
 }
@@ -217,6 +214,7 @@ function duyetDon() {
     }).then(() => alert("Đã xác nhận cho con nghỉ!"));
 
 }
+
 
 
 
