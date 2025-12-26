@@ -3,31 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng Điều Khiển Giáo Viên - Quản Lý Tài Khoản</title>
+    <title>Bảng Điều Khiển Giáo Viên - Full</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        .btn-back {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 1000; /* Để nút luôn nằm trên cùng, không bị che */
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    text-decoration: none;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    transition: 0.3s;
-}
-
-.btn-back:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.05);
-}
         * { box-sizing: border-box; }
         body {
             margin: 0; padding: 20px; min-height: 100vh;
@@ -35,41 +14,40 @@
             background-size: cover; font-family: 'Segoe UI', sans-serif;
             display: flex; flex-direction: column; align-items: center;
         }
+        /* CSS Nút thoát chuẩn */
+        .btn-back {
+            position: absolute; top: 20px; left: 20px; z-index: 1000;
+            background: rgba(0, 0, 0, 0.6); color: white; text-decoration: none;
+            padding: 10px 20px; border-radius: 12px; font-weight: bold;
+            font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+        }
         .container {
             width: 100%; max-width: 600px;
             background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(15px);
             border-radius: 25px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.2);
             color: white; box-shadow: 0 20px 40px rgba(0,0,0,0.5); margin-bottom: 30px;
         }
-        h2 { text-align: center; text-transform: uppercase; letter-spacing: 2px; color: #55efc4; margin-top: 0; }
+        h2 { text-align: center; text-transform: uppercase; color: #55efc4; margin-top: 0; }
         .section-title { font-size: 18px; font-weight: bold; margin: 25px 0 15px; border-left: 4px solid #55efc4; padding-left: 10px; color: #55efc4; }
         
-        /* Form thêm học sinh */
         .add-box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; border: 1px dashed rgba(255,255,255,0.3); margin-bottom: 20px; }
-        .add-box input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; outline: none; background: rgba(255,255,255,0.9); font-weight: bold; }
-        .btn-add { width: 100%; padding: 12px; background: #55efc4; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-add:hover { background: #00b894; transform: scale(1.02); }
+        .add-box input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; }
+        .btn-add { width: 100%; padding: 12px; background: #55efc4; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* Danh sách card */
         .card {
             background: rgba(255, 255, 255, 0.1); border-radius: 15px;
             padding: 15px; margin-bottom: 10px; display: flex;
             justify-content: space-between; align-items: center;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        .score-controls button {
-            padding: 5px 15px; margin-left: 5px; border-radius: 8px; border: none;
-            cursor: pointer; font-weight: bold; font-size: 18px;
-        }
+        .score-controls button { padding: 5px 15px; margin-left: 5px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 18px; }
         .btn-up { background: #55efc4; color: #000; }
         .btn-down { background: #ff7675; color: white; }
-
         .absent-card { background: rgba(255, 118, 117, 0.15); border: 1px solid rgba(255, 118, 117, 0.3); border-radius: 15px; padding: 15px; margin-bottom: 10px; }
-        .btn-back { position: absolute; top: 15px; left: 15px; color: white; text-decoration: none; background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 10px; font-size: 14px; }
     </style>
-</head><body>
-
-    <a href="index.html" class="btn-back">← Thoát</a>
+</head>
+<body><a href="index.html" class="btn-back">← Thoát</a>
 
     <div class="container">
         <h2>GIÁO VIÊN QUẢN LÝ</h2>
@@ -101,33 +79,25 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // HÀM TẠO TÀI KHOẢN MỚI
-    function createNewStudent() {
-        const id = document.getElementById('new-id').value.trim().toUpperCase(); // Tự in hoa HS04
-        const name = document.getElementById('new-name').value.trim();
-
-        if (!id || !name) {
-            alert("Vui lòng nhập đầy đủ Mã số và Tên!");
-            return;
+    // HÀM KIỂM TRA ĐI TRỄ
+    function checkLate(timeStr) {
+        if (!timeStr || timeStr === "") return "";
+        const parts = timeStr.split(':');
+        const hour = parseInt(parts[0]);
+        const minute = parseInt(parts[1]);
+        if (hour > 6 || (hour === 6 && minute > 55)) {
+            return '<span style="background:#ffeaa7; color:#d63031; padding:2px 5px; border-radius:5px; font-size:10px; margin-left:5px; border:1px solid #fab1a0; font-weight:bold;">TRỄ</span>';
         }
+        return '<span style="background:#55efc4; color:#000; padding:2px 5px; border-radius:5px; font-size:10px; margin-left:5px; font-weight:bold;">ĐÚNG GIỜ</span>';
+    }
 
-        // Kiểm tra xem ID đã tồn tại chưa
-        database.ref('users/' + id).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                alert("Mã số " + id + " đã tồn tại rồi!");
-            } else {
-                // Tạo mới dữ liệu
-                database.ref('users/' + id).set({
-                    ten: name,
-                    diem_ren_luyen: 0,
-                    id: id
-                }).then(() => {
-                    alert("Đã tạo tài khoản cho " + name + " thành công!");
-                    document.getElementById('new-id').value = "";
-                    document.getElementById('new-name').value = "";
-                });
-            }
-        });
+    // TẠO TÀI KHOẢN MỚI
+    function createNewStudent() {
+        const id = document.getElementById('new-id').value.trim().toUpperCase();
+        const name = document.getElementById('new-name').value.trim();
+        if (!id || !name) return alert("Nhập đủ Mã số và Tên!");
+        database.ref('users/' + id).set({ ten: name, diem_ren_luyen: 100, id: id })
+        .then(() => { alert("Thành công!"); document.getElementById('new-id').value = ""; document.getElementById('new-name').value = ""; });
     }
 
     // TẢI DANH SÁCH HỌC SINH
@@ -137,11 +107,13 @@
         snap.forEach((child) => {
             const id = child.key;
             const data = child.val();
+            const lateStatus = checkLate(data.gio_diem_danh);
             const div = document.createElement('div');
-            div.className = 'card';
-            div.innerHTML = `
+            div.className = 'card';div.innerHTML = `
                 <div>
-                    <strong>${data.ten}</strong><br><small style="opacity:0.8">ID: ${id} | Điểm: <span id="score-${id}">${data.diem_ren_luyen}</span></small>
+                    <strong>${data.ten}</strong> ${lateStatus}<br>
+                    <small style="opacity:0.8">ID: ${id} | Điểm: <span id="score-${id}">${data.diem_ren_luyen}</span></small>
+                    <div style="font-size:10px; color:#55efc4; margin-top:2px;">🕒 Lúc: ${data.gio_diem_danh || '--:--'}</div>
                 </div>
                 <div class="score-controls">
                     <button class="btn-up" onclick="changeScore('${id}', 1)">+</button>
@@ -158,32 +130,22 @@
     }
 
     function deleteStudent(id) {
-        if(confirm("Bạn có chắc muốn xóa học sinh " + id + " không?")) {
-            database.ref('users/' + id).remove();
-        }
+        if(confirm("Xóa học sinh này?")) database.ref('users/' + id).remove();
     }
 
     // DANH SÁCH XIN NGHỈ
     database.ref('xin_nghi').on('value', (snap) => {
         const container = document.getElementById('absent-list');
         container.innerHTML = "";
-        if (!snap.exists()) {
-            container.innerHTML = "Chưa có ai xin nghỉ.";
-            return;
-        }
+        if (!snap.exists()) { container.innerHTML = "Chưa có ai xin nghỉ."; return; }
         snap.forEach((child) => {
             const data = child.val();
             const div = document.createElement('div');
             div.className = 'absent-card';
-            div.innerHTML = `
-                <div style="font-weight:bold; color:#ff7675;">🚩 ${data.ten}</div>
-                <div style="font-size:14px; margin-top:5px; opacity:0.9;">Lý do: ${data.ly_do}</div>
-                <div style="font-size:10px; margin-top:5px; opacity:0.6;">${data.thoi_gian}</div>
-            `;
+            div.innerHTML = `<div style="font-weight:bold; color:#ff7675;">🚩 ${data.ten}</div><div>Lý do: ${data.ly_do}</div><div style="font-size:10px; opacity:0.6;">${data.thoi_gian}</div>`;
             container.appendChild(div);
         });
     });
 </script>
 </body>
 </html>
-
