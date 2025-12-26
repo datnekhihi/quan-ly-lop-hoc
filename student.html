@@ -95,24 +95,39 @@
 <script src="script.js"></script>
 <script>
     function onScanSuccess(decodedText, decodedResult) {
-    // 1. Tạm dừng quét để tránh gửi dữ liệu liên tục nhiều lần
+    // 1. Tạm dừng quét để xử lý
     html5QrcodeScanner.pause(); 
 
+    // Lấy ID và Lớp của học sinh đã lưu lúc đăng nhập
     const studentId = localStorage.getItem("user-id") || "AnDanh";
+    const studentClass = localStorage.getItem("user-class"); // Giả sử bạn lưu lớp là 'user-class'
+
+    // 2. KIỂM TRA CHẶN QUÉT NHẦM
+    // Nếu nội dung mã QR (decodedText) không trùng với lớp của học sinh
+    if (studentClass && decodedText !== studentClass) {
+        document.getElementById("qr-result").innerHTML = 
+            `<span style="color: #ff4d4d;">❌ Sai lớp! Bạn thuộc lớp ${studentClass}, không phải ${decodedText}</span>`;
+        
+        // Đợi 3 giây rồi cho quét lại
+        setTimeout(() => {
+            html5QrcodeScanner.resume();
+        }, 3000);
+        return; // Dừng lại, không gửi dữ liệu lên Firebase
+    }
+
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
     const timeStr = now.toLocaleTimeString();
 
-    // 2. Gửi dữ liệu lên Firebase
+    // 3. Gửi dữ liệu nếu đúng lớp
     firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
         lop: decodedText,
         thoi_gian: timeStr,
         trang_thai: "Co mat"
     }).then(() => {
-        // Cập nhật thông báo lên màn hình thay vì dùng alert gây đứng hình
-        document.getElementById("qr-result").innerHTML = `<span style="color: #5effc4;">✅ Đã điểm danh lớp ${decodedText}</span>`;
+        document.getElementById("qr-result").innerHTML = 
+            `<span style="color: #5effc4;">✅ Đã điểm danh lớp ${decodedText} thành công!</span>`;
         
-        // 3. Đợi 2 giây để học sinh thấy thông báo rồi mới cho quét tiếp
         setTimeout(() => {
             html5QrcodeScanner.resume();
         }, 2000);
@@ -135,5 +150,6 @@ html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
 </html>
+
 
 
