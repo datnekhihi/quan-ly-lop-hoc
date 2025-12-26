@@ -8,34 +8,29 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        * { box-sizing: border-box; } 
+        * { box-sizing: border-box; }
         body { 
-            margin: 0; padding: 0; min-height: 100vh; 
-            display: flex; justify-content: center; align-items: center; 
+            margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; 
             background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; 
-            background-size: cover; font-family: 'Segoe UI', sans-serif;
-            position: relative; overflow: hidden;
+            background-size: cover; font-family: 'Segoe UI', sans-serif; overflow: hidden; position: relative;
         }
         .btn-exit { 
             position: absolute; top: 15px; left: 15px; color: white; text-decoration: none; 
             background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 10px; 
-            font-size: 14px; z-index: 999; border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(5px);
+            font-size: 14px; z-index: 1000; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);
         }
         .glass-card { 
             background: rgba(0, 0, 0, 0.75); border-radius: 25px; padding: 25px; 
             text-align: center; width: 90%; max-width: 360px; 
             border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); color: white;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; gap: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px;
         }
-        h2 { margin: 0; font-size: 24px; color: #fff; text-transform: uppercase; }
-        h1 { font-size: 65px; margin: 0; color: #55efc4; line-height: 1; font-weight: bold; }
-        .label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px; }
-        #video { border-radius: 20px; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border: 2px solid #55efc4; }
-        .status-box { padding: 12px; border-radius: 12px; background: rgba(85, 239, 196, 0.15); color: #55efc4; font-size: 14px; font-weight: bold; border: 1px solid rgba(85,239,196,0.3); }
-        input { width: 100%; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,0.15); color: white; text-align: center; outline: none; font-size: 15px; }
-        .btn-red { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #ff7675; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
+        h2 { margin: 0; font-size: 22px; color: #fff; }
+        h1 { font-size: 60px; margin: 0; color: #55efc4; line-height: 1; }
+        #video { border-radius: 15px; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border: 2px solid #55efc4; }
+        .status-box { padding: 10px; border-radius: 12px; background: rgba(85, 239, 196, 0.1); color: #55efc4; font-size: 14px; border: 1px solid rgba(85,239,196,0.3); }
+        input { width: 100%; padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.15); color: white; text-align: center; outline: none; }
+        .btn-red { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #ff7675; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -43,20 +38,17 @@
     <a href="index.html" class="btn-exit">← Thoát</a>
 
     <div class="glass-card">
-        <h2 id="student-name">ĐANG TẢI...</h2>
+        <h2 id="student-name">ĐANG KẾT NỐI...</h2>
         <h1 id="student-score">--</h1>
-        <div class="label">ĐIỂM RÈN LUYỆN</div>
+        <p style="font-size: 10px; opacity: 0.8; margin: 0;">ĐIỂM RÈN LUYỆN</p>
         
-        <video id="video" autoplay muted playsinline></video><div id="face-status" class="status-box">🔍 Đang nhận diện...</div>
+        <video id="video" autoplay muted playsinline></video>
+        <div id="face-status" class="status-box">🔍 Đang nhận diện...</div>
         
-        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
-            <input type="text" id="reason-input" placeholder="Lý do xin nghỉ...">
-            <button class="btn-red" onclick="guiDonXinNghi()">GỬI ĐƠN XIN NGHỈ</button>
-        </div>
-    </div>
+        <input type="text" id="reason-input" placeholder="Lý do xin nghỉ...">
+        <button class="btn-red" onclick="guiDonXinNghi()">GỬI ĐƠN XIN NGHỈ</button></div>
 
 <script>
-    // Cấu hình Firebase chuẩn theo ảnh của bạn
     const firebaseConfig = {
         apiKey: "AIzaSyBuwC_mqQ0uO-5NSHLIJ5wq11dB-2kIop8",
         authDomain: "quanly-428c3.firebaseapp.com",
@@ -69,30 +61,23 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Lấy ID từ thanh địa chỉ (Vd: ?id=HS02)
+    // Lấy ID từ link hoặc mặc định là HS01
     const urlParams = new URLSearchParams(window.location.search);
-    let currentID = urlParams.get('id');
+    const currentID = urlParams.get('id') || 'HS01';
 
-    // Nếu không có ID trên link, mặc định lấy HS01 để không bị lỗi "SAI ID"
-    if (!currentID) currentID = 'HS01';
+    // 1. Tải dữ liệu từ node users/HS01
+    database.ref('users/' + currentID).on('value', snap => {
+        const data = snap.val();
+        if (data) {
+            document.getElementById('student-name').innerText = data.ten;
+            document.getElementById('student-score').innerText = data.diem_ren_luyen;
+        } else {
+            document.getElementById('student-name').innerText = "SAI ID: " + currentID;
+        }
+    });
 
-    function loadStudentData() {
-        // Truy cập thẳng vào node HS01, HS02... tại gốc Database
-        database.ref(currentID).on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                // Hiện tên và điểm lên màn hình
-                document.getElementById('student-name').innerText = data.ten || "Chưa có tên";
-                document.getElementById('student-score').innerText = data.diem_ren_luyen || "0";
-                console.log("Đã tải dữ liệu cho:", currentID);
-            } else {
-                document.getElementById('student-name').innerText = "KHÔNG TÌM THẤY " + currentID;
-            }
-        });
-    }
-
-    // Khởi tạo Camera và AI
-    async function startAI() {
+    // 2. Nhận diện khuôn mặt tự động
+    async function initAI() {
         const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
         try {
             await Promise.all([
@@ -102,35 +87,30 @@
             const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
             document.getElementById('video').srcObject = stream;
             
-            // Tự động nhận diện mỗi 2 giây
             setInterval(async () => {
                 const detections = await faceapi.detectAllFaces('video', new faceapi.TinyFaceDetectorOptions());
                 if (detections.length > 0) {
-                    const status = document.getElementById('face-status');
-                    status.innerHTML = "⭐ ĐIỂM DANH THÀNH CÔNG!";
-                    status.style.background = "#55efc4";
-                    status.style.color = "#000";
+                    document.getElementById('face-status').innerText = "✅ ĐÃ ĐIỂM DANH TỰ ĐỘNG";
+                    document.getElementById('face-status').style.background = "rgba(85, 239, 196, 0.3)";
                 }
             }, 2000);
         } catch (e) {
-            console.error("Lỗi camera:", e);
+            document.getElementById('face-status').innerText = "⚠️ Lỗi Camera";
         }
     }
 
+    // 3. Gửi đơn xin nghỉ vào node xin_nghi
     function guiDonXinNghi() {
         const lyDo = document.getElementById('reason-input').value;
-        if (!lyDo) return alert("Vui lòng nhập lý do!");
-        
-        database.ref(currentID).update({ly_do_nghi: lyDo,
-            thoi_gian_nghi: new Date().toLocaleString()
-        }).then(() => alert("Đã gửi đơn xin nghỉ!"));
+        if(!lyDo) return alert("Nhập lý do!");
+        database.ref('xin_nghi/' + currentID).set({
+            ten: document.getElementById('student-name').innerText,
+            ly_do: lyDo,
+            thoi_gian: new Date().toLocaleString()
+        }).then(() => alert("Đã gửi đơn!"));
     }
 
-    // Chạy các hàm
-    loadStudentData();
-    startAI();
+    initAI();
 </script>
 </body>
 </html>
-
-
