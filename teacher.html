@@ -7,6 +7,27 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
+        .btn-back {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000; /* Để nút luôn nằm trên cùng, không bị che */
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    transition: 0.3s;
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
         * { box-sizing: border-box; }
         body {
             margin: 0; padding: 20px; min-height: 100vh;
@@ -165,3 +186,4 @@
 </script>
 </body>
 </html>
+
