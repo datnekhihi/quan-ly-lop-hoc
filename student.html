@@ -68,24 +68,37 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // LẤY ID TỪ LINK HOẶC MẶC ĐỊNH LÀ HS01
+    // Lấy ID từ link
     const urlParams = new URLSearchParams(window.location.search);
-    const currentID = urlParams.get('id') || 'HS01'; 
+    let rawID = urlParams.get('id') || 'HS01'; 
 
     function loadData() {
-        // TRUY XUẤT THẲNG VÀO NODE (VÍ DỤ: HS01) THEO ẢNH 4 CỦA BẠN
-        database.ref(currentID).on('value', snap => {
-            const data = snap.val();
-            if (data) {
-                // Gán dữ liệu vào màn hình
-                document.getElementById('student-name').innerText = data.ten || "KHÔNG TÊN";
-                document.getElementById('student-score').innerText = data.diem_ren_luyen || 0;
-                console.log("Đã tải dữ liệu của:", data.ten);
+        // Thử tìm với ID gốc (Vd: HS01)
+        database.ref(rawID).on('value', snap => {
+            let data = snap.val();
+            
+            // Nếu không thấy, thử tìm với bản viết hoa (Vd: HS01)
+            if (!data) {
+                database.ref(rawID.toUpperCase()).once('value', s => {
+                    if (s.val()) updateUI(s.val());
+                    else {
+                        // Nếu vẫn không thấy, thử tìm bản viết thường (Vd: hs01)
+                        database.ref(rawID.toLowerCase()).once('value', s2 => {
+                            if (s2.val()) updateUI(s2.val());
+                            else document.getElementById('student-name').innerText = "SAI ID: " + rawID;
+                        });
+                    }
+                });
             } else {
-                document.getElementById('student-name').innerText = "SAI ID";
-                console.log("Không tìm thấy ID:", currentID);
+                updateUI(data);
             }
         });
+    }
+
+    function updateUI(data) {
+        document.getElementById('student-name').innerText = data.ten || "KHÔNG TÊN";
+        document.getElementById('student-score').innerText = data.diem_ren_luyen || 0;
+        console.log("Đã khớp dữ liệu!");
     }
 
     async function initAI() {
@@ -104,23 +117,19 @@
                     const status = document.getElementById('face-status');
                     status.innerHTML = "✅ ĐÃ ĐIỂM DANH TỰ ĐỘNG";
                     status.style.background = "rgba(85, 239, 196, 0.3)";
-                    status.style.borderColor = "#55efc4";
                 }
             }, 2000);
         } catch (e) {
-            document.getElementById('face-status').innerText = "⚠️ Lỗi Camera hoặc AI";
+            console.log("Chờ camera...");
         }
-    }function guiDonXinNghi() {
-        const lyDo = document.getElementById('reason-input').value;
-        if(!lyDo) return alert("Vui lòng nhập lý do!");
-        
-        database.ref(currentID).update({ 
+    }
+
+    function guiDonXinNghi() {const lyDo = document.getElementById('reason-input').value;
+        if(!lyDo) return alert("Nhập lý do đã!");
+        database.ref(rawID).update({ 
             ly_do_nghi: lyDo,
             thoi_gian_nghi: new Date().toLocaleString()
-        }).then(() => {
-            alert("Đã gửi đơn xin nghỉ thành công!");
-            document.getElementById('reason-input').value = "";
-        });
+        }).then(() => alert("Đã gửi đơn!"));
     }
 
     loadData();
@@ -128,3 +137,4 @@
 </script>
 </body>
 </html>
+
