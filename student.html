@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Học Sinh - Hệ Thống Đồng Bộ</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body { 
             margin: 0; 
@@ -77,7 +78,8 @@
         <h2 id="student-name">Đang tải...</h2>
         <h1 id="student-score">--</h1>
         <p class="label">ĐIỂM RÈN LUYỆN</p>
-
+        <div id="qr-reader" style="width: 100%; border-radius: 15px; margin-bottom: 20px;"></div>
+        <div id="qr-result" style="color: #5effc4; font-weight: bold; margin-bottom: 10px;"></div>
         <button class="btn btn-green" onclick="baoDanh()">BÁO DANH CÓ MẶT</button>
 
         <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;"><input type="text" id="reason-input" placeholder="Nhập lý do xin nghỉ...">
@@ -91,5 +93,26 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script src="firebase.config.js"></script>
 <script src="script.js"></script>
+<script>
+    function onScanSuccess(decodedText, decodedResult) {
+        const studentId = localStorage.getItem("user-id");
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const timeStr = now.toLocaleTimeString();
+
+        // Gửi dữ liệu điểm danh lên Firebase
+        firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
+            lop: decodedText,
+            thoi_gian: timeStr,
+            trang_thai: "Co mat"
+        }).then(() => {
+            document.getElementById("qr-result").innerText = "✅ Thành công: " + timeStr;
+            alert("Bạn đã điểm danh thành công lớp " + decodedText);
+        });
+    }
+
+    let html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess);
+</script>
 </body>
 </html>
