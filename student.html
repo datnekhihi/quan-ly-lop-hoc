@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Học Sinh - Hệ Thống Đồng Bộ</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
@@ -33,7 +33,7 @@
         <p style="letter-spacing: 2px; font-size: 12px;">ĐIỂM RÈN LUYỆN</p>
         
         <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
-            <video id="video" width="300" height="230" autoplay muted playsinline></video>
+            <video id="video" width="300" height="230" autoplay muted playsinline style="border-radius: 15px; background: #000; object-fit: cover;"></video>
             <p id="face-status" style="margin-top: 10px; color: #5effc4; font-size: 14px;">Đang khởi động Face ID...</p>
         </div>
 
@@ -80,7 +80,7 @@
             if (detections.length > 0) {
                 const savedFaceData = localStorage.getItem("user-face");
                 if (savedFaceData) {
-                    const savedFace = new Float32Array(Object.values(JSON.parse(savedFaceData)));
+                    const savedFace = new Float32Array(JSON.parse(savedFaceData));
                     const distance = faceapi.euclideanDistance(detections[0].descriptor, savedFace);
                     if (distance < 0.5) diemDanhThanhCong();
                 }
@@ -105,4 +105,5 @@
 </script>
 </body>
 </html>
+
 
