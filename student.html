@@ -16,14 +16,12 @@
             background-size: cover; font-family: 'Segoe UI', sans-serif;
             position: relative; overflow: hidden;
         }
-        
         .btn-exit { 
             position: absolute; top: 15px; left: 15px; color: white; text-decoration: none; 
             background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 10px; 
             font-size: 14px; z-index: 999; border: 1px solid rgba(255,255,255,0.2);
             backdrop-filter: blur(5px);
         }
-
         .glass-card { 
             background: rgba(0, 0, 0, 0.75); border-radius: 25px; padding: 25px; 
             text-align: center; width: 90%; max-width: 360px; 
@@ -31,15 +29,11 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
             display: flex; flex-direction: column; gap: 8px;
         }
-
         h2 { margin: 0; font-size: 24px; color: #fff; text-transform: uppercase; }
         h1 { font-size: 65px; margin: 0; color: #55efc4; line-height: 1; font-weight: bold; }
         .label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px; }
-        
         #video { border-radius: 20px; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border: 2px solid #55efc4; }
-        
         .status-box { padding: 12px; border-radius: 12px; background: rgba(85, 239, 196, 0.15); color: #55efc4; font-size: 14px; font-weight: bold; border: 1px solid rgba(85,239,196,0.3); }
-        
         input { width: 100%; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,0.15); color: white; text-align: center; outline: none; font-size: 15px; }
         .btn-red { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #ff7675; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
     </style>
@@ -51,8 +45,9 @@
     <div class="glass-card">
         <h2 id="student-name">ĐANG TẢI...</h2>
         <h1 id="student-score">--</h1>
-        <div class="label">ĐIỂM RÈN LUYỆN</div><video id="video" autoplay muted playsinline></video>
-        <div id="face-status" class="status-box">🔍 Đang nhận diện...</div>
+        <div class="label">ĐIỂM RÈN LUYỆN</div>
+        
+        <video id="video" autoplay muted playsinline></video><div id="face-status" class="status-box">🔍 Đang nhận diện...</div>
         
         <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
             <input type="text" id="reason-input" placeholder="Lý do xin nghỉ...">
@@ -73,18 +68,22 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // SỬA LỖI MẤT DỮ LIỆU: Nếu không có ID trên link, mặc định lấy HS01
+    // LẤY ID TỪ LINK HOẶC MẶC ĐỊNH LÀ HS01
     const urlParams = new URLSearchParams(window.location.search);
     const currentID = urlParams.get('id') || 'HS01'; 
 
     function loadData() {
+        // TRUY XUẤT THẲNG VÀO NODE (VÍ DỤ: HS01) THEO ẢNH 4 CỦA BẠN
         database.ref(currentID).on('value', snap => {
             const data = snap.val();
             if (data) {
+                // Gán dữ liệu vào màn hình
                 document.getElementById('student-name').innerText = data.ten || "KHÔNG TÊN";
                 document.getElementById('student-score').innerText = data.diem_ren_luyen || 0;
+                console.log("Đã tải dữ liệu của:", data.ten);
             } else {
                 document.getElementById('student-name').innerText = "SAI ID";
+                console.log("Không tìm thấy ID:", currentID);
             }
         });
     }
@@ -111,11 +110,11 @@
         } catch (e) {
             document.getElementById('face-status').innerText = "⚠️ Lỗi Camera hoặc AI";
         }
-    }
-
-    function guiDonXinNghi() {
+    }function guiDonXinNghi() {
         const lyDo = document.getElementById('reason-input').value;
-        if(!lyDo) return alert("Vui lòng nhập lý do!");database.ref(currentID).update({ 
+        if(!lyDo) return alert("Vui lòng nhập lý do!");
+        
+        database.ref(currentID).update({ 
             ly_do_nghi: lyDo,
             thoi_gian_nghi: new Date().toLocaleString()
         }).then(() => {
