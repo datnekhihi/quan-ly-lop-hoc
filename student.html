@@ -3,171 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Học Sinh - Hệ Thống Đồng Bộ</title>
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
         body { 
-            margin: 0; 
-            min-height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+            margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; 
             background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; 
-            background-size: cover; 
-            font-family: 'Segoe UI', sans-serif; 
-            color: white; 
+            background-size: cover; font-family: 'Segoe UI', sans-serif; color: white; 
         }
         .glass-card { 
-            background: rgba(0, 0, 0, 0.5); 
-            border-radius: 30px; 
-            padding: 40px; 
-            text-align: center; 
-            width: 320px; 
-            border: 1px solid rgba(255,255,255,0.2); 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6); 
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.5); border-radius: 30px; padding: 40px; text-align: center; 
+            width: 320px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);
         }
-        h2 { margin: 0; font-size: 24px; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
-        h1 { font-size: 100px; margin: 10px 0; color: #55efc4; text-shadow: 0 0 20px rgba(85, 239, 196, 0.5); }
-        p.label { letter-spacing: 3px; opacity: 0.8; font-size: 12px; margin-bottom: 30px; }
-        
-        .btn { 
-            width: 100%; 
-            padding: 15px; 
-            margin: 8px 0; 
-            border-radius: 12px; 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 15px;
-            transition: 0.3s;
-        }
+        h2 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        h1 { font-size: 80px; margin: 10px 0; color: #55efc4; }
+        .btn { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
         .btn-green { background: #55efc4; color: #2d3436; }
-        .btn-green:hover { background: #00b894; transform: translateY(-2px); }
-        
-        .btn-red { background: #ff7675; color: white; margin-top: 5px; }
-        .btn-red:hover { background: #d63031; transform: translateY(-2px); }
-
-        input { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 15px 0 5px 0; 
-            border-radius: 10px; 
-            border: 1px solid rgba(255,255,255,0.3); 
-            background: rgba(0,0,0,0.3); 
-            color: white; 
-            text-align: center; 
-            box-sizing: border-box;
-        }
-        input::placeholder { color: rgba(255,255,255,0.5); }
-
-        .logout-link { 
-            display: inline-block;
-            margin-top: 20px; 
-            color: white; 
-            opacity: 0.6; 
-            text-decoration: none; 
-            font-size: 13px; 
-        }
-        .logout-link:hover { opacity: 1; }
+        .btn-red { background: #ff7675; color: white; }
+        #video { border-radius: 15px; background: #000; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="glass-card">
         <h2 id="student-name">Đang tải...</h2>
         <h1 id="student-score">--</h1>
-        <p class="label">ĐIỂM RÈN LUYỆN</p>
-       <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
-    <video id="video" width="350" height="260" autoplay muted style="border-radius: 15px; background: #000;"></video>
-    <canvas id="overlay" style="position: absolute; top: 0;"></canvas>
-    <p id="face-status" style="margin-top: 10px; color: #5effc4;">Đang khởi động Face ID...</p>
-</div>
-        <button class="btn btn-green" onclick="baoDanh()">BÁO DANH CÓ MẶT</button>
-
-        <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;"><input type="text" id="reason-input" placeholder="Nhập lý do xin nghỉ...">
-            <button class="btn btn-red" onclick="xinNghi()">GỬI ĐƠN XIN NGHỈ</button>
+        <p style="letter-spacing: 2px; font-size: 12px;">ĐIỂM RÈN LUYỆN</p>
+        
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+            <video id="video" width="300" height="230" autoplay muted playsinline></video>
+            <p id="face-status" style="margin-top: 10px; color: #5effc4; font-size: 14px;">Đang khởi động Face ID...</p>
         </div>
 
-        <a href="index.html" class="logout-link">ĐĂNG XUẤT</a>
+        <button class="btn btn-green" onclick="baoDanh()">BÁO DANH CÓ MẶT</button>
+        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+            <input type="text" id="reason-input" placeholder="Lý do xin nghỉ..." style="width:90%; padding:10px; border-radius:8px; margin-bottom:5px;">
+            <button class="btn btn-red" onclick="xinNghi()">GỬI ĐƠN XIN NGHỈ</button>
+        </div>
+        <a href="index.html" style="color:white; opacity:0.6; font-size:12px; text-decoration:none; display:block; margin-top:15px;">ĐĂNG XUẤT</a>
     </div>
 
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    
 <script>
     const video = document.getElementById('video');
-const status = document.getElementById('face-status');
+    const status = document.getElementById('face-status');
 
-// 1. Tải não bộ AI
-async function initFace() {
-    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
-    await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-    ]);
-    status.innerText = "Hãy nhìn thẳng vào camera";
-    navigator.mediaDevices.getUserMedia({ video: {} }).then(stream => video.srcObject = stream);
-}
+    // 1. Tải bộ não AI và mở Camera
+    async function initFace() {
+        try {const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+            ]);
+            
+            status.innerText = "Đang kết nối Camera...";
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            video.srcObject = stream;
+            status.innerText = "Sẵn sàng! Hãy nhìn thẳng vào máy";
+        } catch (error) {
+            console.error(error);
+            status.innerText = "Lỗi: Hãy cấp quyền Camera!";
+        }
+    }
 
-// 2. Vòng lặp nhận diện liên tục
-video.addEventListener('play', () => {
-    setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
-        if (detections.length > 0) {
-            const savedFace = JSON.parse(localStorage.getItem("user-face"));
-            if (savedFace) {
-                const distance = faceapi.euclideanDistance(detections[0].descriptor, savedFace);
-                if (distance < 0.5) { // Nếu khớp trên 70%
-                    diemDanhThanhCong();
+    // 2. Nhận diện và so sánh
+    video.addEventListener('play', () => {
+        setInterval(async () => {
+            const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                .withFaceLandmarks()
+                .withFaceDescriptors();
+
+            if (detections.length > 0) {
+                const savedFaceData = localStorage.getItem("user-face");
+                if (savedFaceData) {
+                    const savedFace = new Float32Array(JSON.parse(savedFaceData));
+                    const distance = faceapi.euclideanDistance(detections[0].descriptor, savedFace);
+                    
+                    if (distance < 0.5) { // Độ khớp > 70%
+                        diemDanhThanhCong();
+                    }
+                } else {
+                    status.innerText = "Chưa có dữ liệu khuôn mặt mẫu!";
                 }
             }
-        }
-    }, 1000);
-});
-
-function diemDanhThanhCong() {
-    const studentId = localStorage.getItem("user-id");
-    const dateStr = new Date().toISOString().split('T')[0];
-    firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
-        thoi_gian: new Date().toLocaleTimeString(),
-        trang_thai: "FaceID Success"
+        }, 1000);
     });
-    status.innerHTML = "✅ ĐÃ NHẬN DIỆN THÀNH CÔNG!";
-}
-// Dán đè lên toàn bộ từ dòng 137 đến hết file student.html
-    } catch (error) {
-        console.error("Lỗi khởi tạo Face ID:", error);
-        status.innerText = "Lỗi: Không thể tải AI hoặc mở Camera!";
+
+    function diemDanhThanhCong() {
+        const studentId = localStorage.getItem("user-id");
+        if (!studentId) return;
+
+        const dateStr = new Date().toISOString().split('T')[0];
+        firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
+            thoi_gian: new Date().toLocaleTimeString(),
+            trang_thai: "FaceID Success"
+        }).then(() => {
+            status.innerHTML = "✅ NHẬN DIỆN THÀNH CÔNG!";
+            video.pause();
+            setTimeout(() => { video.play(); status.innerText = "Hãy nhìn thẳng vào camera"; }, 5000);
+        });
     }
-}
 
-// 3. Hàm ghi dữ liệu điểm danh khi khớp mặt
-function diemDanhThanhCong() {
-    const studentId = localStorage.getItem("user-id");
-    const dateStr = new Date().toISOString().split('T')[0];
-    
-    firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
-        thoi_gian: new Date().toLocaleTimeString(),
-        trang_thai: "FaceID Success"
-    }).then(() => {
-        status.innerHTML = "✅ ĐÃ NHẬN DIỆN THÀNH CÔNG!";
-        video.pause(); // Dừng video để báo hiệu xong
-        setTimeout(() => { video.play(); }, 5000); // Sau 5 giây mở lại camera
-    });
-}
-
-// Lệnh duy nhất để bắt đầu toàn bộ hệ thống
-initFace();
+    // Khởi chạy
+    initFace();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
