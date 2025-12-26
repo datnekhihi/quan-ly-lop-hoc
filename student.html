@@ -137,12 +137,12 @@ function diemDanhThanhCong() {
 }
 
 initFace();
-
-  // (Dán tiếp vào sau dòng 139: initFace();)
+// Dán đè lên từ dòng 140 đến hết file
     
-} catch (error) {
-    console.error("Lỗi khởi tạo Face ID:", error);
-    status.innerText = "Lỗi khởi động camera hoặc thư viện!";
+    } catch (error) {
+        console.error("Lỗi khởi tạo Face ID:", error);
+        status.innerText = "Lỗi khởi động camera hoặc thư viện!";
+    }
 }
 
 // 3. Hàm ghi dữ liệu vào Firebase khi nhận diện thành công
@@ -150,23 +150,22 @@ function diemDanhThanhCong() {
     const studentId = localStorage.getItem("user-id");
     const dateStr = new Date().toISOString().split('T')[0];
     
-    // Tự động gửi dữ liệu lên Firebase
     firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
         thoi_gian: new Date().toLocaleTimeString(),
         trang_thai: "FaceID Success"
     }).then(() => {
         status.innerHTML = "✅ ĐÃ NHẬN DIỆN THÀNH CÔNG!";
-        // Dừng video 3 giây để học sinh biết đã xong
-        video.pause();
+        video.pause(); // Dừng video 3 giây để học sinh biết đã xong
         setTimeout(() => { video.play(); }, 3000);
     });
 }
 
-// Bắt đầu chạy
+// Gọi lệnh khởi chạy hệ thống
 initFace();
 </script>
 </body>
 </html>
+
 
 
 
