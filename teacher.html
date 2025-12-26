@@ -79,20 +79,6 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    // 1. Logic kiểm tra đi trễ (6:55 AM)
-function checkLate(timeStr) {
-    if (!timeStr) return "";
-    // Giả sử timeStr lấy từ Firebase có dạng "07:15" hoặc "06:40"
-    const parts = timeStr.split(':');
-    const hour = parseInt(parts[0]);
-    const minute = parseInt(parts[1]);
-    
-    // Nếu giờ > 6 HOẶC (giờ bằng 6 và phút > 55) thì tính là trễ
-    if (hour > 6 || (hour === 6 && minute > 55)) {
-        return '<span style="background: #ffeaa7; color: #d63031; padding: 3px 8px; border-radius: 5px; font-weight: bold; font-size: 10px; margin-left: 10px; border: 1px solid #fab1a0;">ĐI TRỄ</span>';
-    }
-    return '<span style="background: #55efc4; color: #000; padding: 3px 8px; border-radius: 5px; font-weight: bold; font-size: 10px; margin-left: 10px;">ĐÚNG GIỜ</span>';
-}
 
     // HÀM TẠO TÀI KHOẢN MỚI
     function createNewStudent() {
@@ -112,7 +98,7 @@ function checkLate(timeStr) {
                 // Tạo mới dữ liệu
                 database.ref('users/' + id).set({
                     ten: name,
-                    diem_ren_luyen: 100,
+                    diem_ren_luyen: 0,
                     id: id
                 }).then(() => {
                     alert("Đã tạo tài khoản cho " + name + " thành công!");
@@ -122,44 +108,28 @@ function checkLate(timeStr) {
             }
         });
     }
-function checkLate(timeStr) {
-    if (!timeStr || timeStr === "") return "";
-    const parts = timeStr.split(':');
-    const hour = parseInt(parts[0]);
-    const minute = parseInt(parts[1]);
-    // Nếu sau 6:55 thì hiện tag TRỄ màu đỏ/vàng
-    if (hour > 6 || (hour === 6 && minute > 55)) {
-        return '<span style="background:#ffeaa7; color:#d63031; padding:2px 5px; border-radius:5px; font-size:10px; margin-left:5px; border:1px solid #fab1a0;">TRỄ</span>';
-    }
-    return '<span style="background:#55efc4; color:#000; padding:2px 5px; border-radius:5px; font-size:10px; margin-left:5px;">ĐÚNG GIỜ</span>';
-}
+
     // TẢI DANH SÁCH HỌC SINH
     database.ref('users').on('value', (snap) => {
-    const container = document.getElementById('student-list');
-    container.innerHTML = "";
-    snap.forEach((child) => {
-        const id = child.key;
-        const data = child.val();
-        // Lấy tag TRỄ hoặc ĐÚNG GIỜ dựa trên gio_diem_danh trong Firebase
-        const lateStatus = data.gio_diem_danh ? checkLate(data.gio_diem_danh) : "";
-        
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-            <div>
-                <strong>${data.ten}</strong> ${lateStatus}<br>
-                <small style="opacity:0.8">ID: ${id} | Điểm: <span id="score-${id}">${data.diem_ren_luyen}</span></small>
-                <div style="font-size:10px; color:#55efc4;">Lúc: ${data.gio_diem_danh || '--:--'}</div>
-            </div>
-            <div class="score-controls">
-                <button class="btn-up" onclick="changeScore('${id}', 1)">+</button>
-                <button class="btn-down" onclick="changeScore('${id}', -1)">-</button>
-                <button style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px;" onclick="deleteStudent('${id}')">🗑️</button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
-});
+        const container = document.getElementById('student-list');
+        container.innerHTML = "";
+        snap.forEach((child) => {
+            const id = child.key;
+            const data = child.val();
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <div>
+                    <strong>${data.ten}</strong><br><small style="opacity:0.8">ID: ${id} | Điểm: <span id="score-${id}">${data.diem_ren_luyen}</span></small>
+                </div>
+                <div class="score-controls">
+                    <button class="btn-up" onclick="changeScore('${id}', 1)">+</button>
+                    <button class="btn-down" onclick="changeScore('${id}', -1)">-</button>
+                    <button style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px;" onclick="deleteStudent('${id}')">🗑️</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
     });
 
     function changeScore(id, amount) {
@@ -195,7 +165,3 @@ function checkLate(timeStr) {
 </script>
 </body>
 </html>
-
-
-
-
