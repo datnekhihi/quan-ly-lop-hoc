@@ -3,52 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Học Sinh - Hệ Thống Đồng Bộ</title>
+    <title>Học Sinh - Hệ Thống Điểm Danh</title>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
+
     <style>
-        body { 
-            margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; 
-            background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; 
-            background-size: cover; font-family: 'Segoe UI', sans-serif; color: white; 
-        }
-        .glass-card { 
-            background: rgba(0, 0, 0, 0.5); border-radius: 30px; padding: 40px; text-align: center; 
-            width: 320px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px);
-        }
+        body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: 'Segoe UI', sans-serif; color: white; }
+        .glass-card { background: rgba(0, 0, 0, 0.5); border-radius: 30px; padding: 40px; text-align: center; width: 320px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
         h2 { margin: 0; font-size: 24px; text-transform: uppercase; }
-        h1 { font-size: 80px; margin: 10px 0; color: #55efc4; }
+        h1 { font-size: 60px; margin: 10px 0; color: #55efc4; }
+        #video { border-radius: 15px; background: #000; margin-top: 10px; object-fit: cover; width: 100%; height: 230px; }
         .btn { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
         .btn-green { background: #55efc4; color: #2d3436; }
         .btn-red { background: #ff7675; color: white; }
-        #video { border-radius: 15px; background: #000; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="glass-card">
-        <h2 id="student-name">Đang tải...</h2>
-        <h1 id="student-score">--</h1>
-        <p style="letter-spacing: 2px; font-size: 12px;">ĐIỂM RÈN LUYỆN</p>
-        
-        <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
-            <video id="video" width="300" height="230" autoplay muted playsinline style="border-radius: 15px; background: #000; object-fit: cover;"></video>
-            <p id="face-status" style="margin-top: 10px; color: #5effc4; font-size: 14px;">Đang khởi động Face ID...</p>
-        </div>
 
-        <button class="btn btn-green" onclick="baoDanh()">BÁO DANH CÓ MẶT</button>
-        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
-            <input type="text" id="reason-input" placeholder="Lý do xin nghỉ..." style="width:90%; padding:10px; border-radius:8px; margin-bottom:5px;">
-            <button class="btn btn-red" onclick="xinNghi()">GỬI ĐƠN XIN NGHỈ</button>
-        </div>
-        <a href="index.html" style="color:white; opacity:0.6; font-size:12px; text-decoration:none; display:block; margin-top:15px;">ĐĂNG XUẤT</a>
+<div class="glass-card">
+    <h2 id="student-name">Đang tải...</h2>
+    <h1 id="student-score">--</h1>
+    <p style="letter-spacing: 2px; font-size: 12px;">ĐIỂM RÈN LUYỆN</p>
+
+    <div style="position: relative;">
+        <video id="video" autoplay muted playsinline></video>
+        <p id="face-status" style="margin-top: 10px; color: #55efc4; font-size: 14px;">Khởi động Face ID...</p>
     </div>
 
-<script>
-    const video = document.getElementById('video');
-    const status = document.getElementById('face-status');
+    <button class="btn btn-green" onclick="diemDanhThanhCong()">BÁO DANH CÓ MẶT</button>
+    
+    <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+        <input type="text" id="reason-input" placeholder="Lý do xin nghỉ..." style="width: 90%; padding: 10px; border-radius: 8px; border: none; margin-bottom: 5px;">
+        <button class="btn btn-red">GỬI ĐƠN XIN NGHỈ</button>
+    </div>
+</div>
 
+<script>
+    // 1. Cấu hình Firebase của bạn
+    const firebaseConfig = {
+        apiKey: "AIzaSy...", 
+        authDomain: "quan-ly-lop-hoc.firebaseapp.com",
+        databaseURL: "https://quan-ly-lop-hoc-default-rtdb.firebaseio.com",
+        projectId: "quan-ly-lop-hoc",
+        storageBucket: "quan-ly-lop-hoc.appspot.com",
+        messagingSenderId: "...",
+        appId: "..."
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const video = document.getElementById('video');const status = document.getElementById('face-status');
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentID = urlParams.get('id');
+
+    // 2. Lấy dữ liệu học sinh
+    function loadStudentData() {
+        if (!currentID) {
+            document.getElementById('student-name').innerText = "ID KHÔNG HỢP LỆ";
+            return;
+        }
+        database.ref('users/' + currentID).on('value', (snap) => {
+            const data = snap.val();
+            if (data) {
+                document.getElementById('student-name').innerText = data.ten;
+                document.getElementById('student-score').innerText = data.diem_ren_luyen || 0;
+                if (data.face_data) {
+                    localStorage.setItem("user-face", JSON.stringify(data.face_data));
+                }
+            } else {
+                document.getElementById('student-name').innerText = "SAI ID HỌC SINH";
+            }
+        });
+    }
+
+    // 3. Khởi động AI và Camera
     async function initFace() {
         try {
             const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
@@ -58,52 +87,46 @@
                 faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
             ]);
             
-            status.innerText = "Đang mở Camera...";
-            // Thêm cấu hình bắt buộc để tránh lỗi trên một số trình duyệt
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } 
-            });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
             video.srcObject = stream;
             status.innerText = "Sẵn sàng! Hãy nhìn thẳng vào máy";
         } catch (error) {
-            console.error("Lỗi chi tiết:", error);
-            status.innerText = "Lỗi: Hệ thống không thể truy cập Camera!";
+            status.innerText = "Lỗi: Hãy cấp quyền Camera!";
         }
     }
 
+    // 4. Quét khuôn mặt liên tục
     video.addEventListener('play', () => {
         setInterval(async () => {
-            const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-                .withFaceLandmarks()
-                .withFaceDescriptors();
-
+            const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
             if (detections.length > 0) {
                 const savedFaceData = localStorage.getItem("user-face");
                 if (savedFaceData) {
                     const savedFace = new Float32Array(JSON.parse(savedFaceData));
                     const distance = faceapi.euclideanDistance(detections[0].descriptor, savedFace);
-                    if (distance < 0.5) diemDanhThanhCong();
+                    if (distance < 0.5) {
+                        diemDanhThanhCong();
+                    }
                 }
             }
         }, 1000);
     });
 
+    // 5. Gửi kết quả lên Firebase
     function diemDanhThanhCong() {
-        const studentId = localStorage.getItem("user-id");
-        if (!studentId) return;
+        if (!currentID) return;
         const dateStr = new Date().toISOString().split('T')[0];
-        firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
+        database.ref('diem_danh/' + dateStr + '/' + currentID).set({
             thoi_gian: new Date().toLocaleTimeString(),
-            trang_thai: "FaceID Success"
+            trang_thai: "FaceID Thành Công"
         }).then(() => {
-            status.innerHTML = "✅ NHẬN DIỆN THÀNH CÔNG!";
-            video.pause();
+            status.innerHTML = "✅ ĐÃ NHẬN DIỆN THÀNH CÔNG!";video.pause();
         });
     }
 
-    initFace(); // Lệnh khởi chạy nằm ở đây
+    // Chạy chương trình
+    loadStudentData();
+    initFace();
 </script>
 </body>
 </html>
-
-
