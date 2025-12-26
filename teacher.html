@@ -98,7 +98,7 @@
                 // Tạo mới dữ liệu
                 database.ref('users/' + id).set({
                     ten: name,
-                    diem_ren_luyen: 0,
+                    diem_ren_luyen: 100,
                     id: id
                 }).then(() => {
                     alert("Đã tạo tài khoản cho " + name + " thành công!");
@@ -165,3 +165,4 @@
 </script>
 </body>
 </html>
+
