@@ -127,6 +127,17 @@
         }, 3000);
     });
 }
+    // Đoạn code này giúp hiển thị lại khung camera
+let html5QrcodeScanner = new Html5QrcodeScanner(
+    "qr-reader", 
+    { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 },
+        rememberLastUsedCamera: true,
+        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA] 
+    }
+);
+html5QrcodeScanner.render(onScanSuccess);
 
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
@@ -163,6 +174,7 @@ html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
 </html>
+
 
 
 
