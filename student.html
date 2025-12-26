@@ -111,8 +111,17 @@
         });
     }
 
-    let html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 });
-    html5QrcodeScanner.render(onScanSuccess);
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+    "qr-reader", 
+    { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 },
+        rememberLastUsedCamera: true,
+        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA] 
+    }
+);
+html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
 </html>
+
