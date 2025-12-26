@@ -135,15 +135,14 @@ function diemDanhThanhCong() {
     });
     status.innerHTML = "✅ ĐÃ NHẬN DIỆN THÀNH CÔNG!";
 }
-// Dán vào sau dấu } kết thúc của video.addEventListener (khoảng dòng 136)
-
+// Dán đè lên toàn bộ từ dòng 137 đến hết file student.html
     } catch (error) {
         console.error("Lỗi khởi tạo Face ID:", error);
         status.innerText = "Lỗi: Không thể tải AI hoặc mở Camera!";
     }
 }
 
-// Hàm ghi dữ liệu điểm danh
+// 3. Hàm ghi dữ liệu điểm danh khi khớp mặt
 function diemDanhThanhCong() {
     const studentId = localStorage.getItem("user-id");
     const dateStr = new Date().toISOString().split('T')[0];
@@ -153,20 +152,16 @@ function diemDanhThanhCong() {
         trang_thai: "FaceID Success"
     }).then(() => {
         status.innerHTML = "✅ ĐÃ NHẬN DIỆN THÀNH CÔNG!";
-        video.pause();
-        setTimeout(() => { video.play(); }, 5000); // Tạm dừng 5s để tránh trùng lặp
+        video.pause(); // Dừng video để báo hiệu xong
+        setTimeout(() => { video.play(); }, 5000); // Sau 5 giây mở lại camera
     });
 }
 
-// Lệnh kích hoạt hệ thống
+// Lệnh duy nhất để bắt đầu toàn bộ hệ thống
 initFace();
 </script>
 </body>
 </html>
-
-
-
-
 
 
 
