@@ -25,7 +25,7 @@
             border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); color: white;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px;
         }
-        h2 { margin: 0; font-size: 22px; color: #fff; }
+        h2 { margin: 0; font-size: 22px; color: #fff; text-transform: uppercase; }
         h1 { font-size: 60px; margin: 0; color: #55efc4; line-height: 1; }
         #video { border-radius: 15px; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border: 2px solid #55efc4; }
         .status-box { padding: 10px; border-radius: 12px; background: rgba(85, 239, 196, 0.1); color: #55efc4; font-size: 14px; border: 1px solid rgba(85,239,196,0.3); }
@@ -40,13 +40,13 @@
     <div class="glass-card">
         <h2 id="student-name">ĐANG KẾT NỐI...</h2>
         <h1 id="student-score">--</h1>
-        <p style="font-size: 10px; opacity: 0.8; margin: 0;">ĐIỂM RÈN LUYỆN</p>
+        <p style="font-size: 10px; opacity: 0.8; margin: 0; letter-spacing: 2px;">ĐIỂM RÈN LUYỆN</p>
         
         <video id="video" autoplay muted playsinline></video>
         <div id="face-status" class="status-box">🔍 Đang nhận diện...</div>
         
-        <input type="text" id="reason-input" placeholder="Lý do xin nghỉ...">
-        <button class="btn-red" onclick="guiDonXinNghi()">GỬI ĐƠN XIN NGHỈ</button></div>
+        <input type="text" id="reason-input" placeholder="Lý do xin nghỉ..."><button class="btn-red" onclick="guiDonXinNghi()">GỬI ĐƠN XIN NGHỈ</button>
+    </div>
 
 <script>
     const firebaseConfig = {
@@ -61,22 +61,23 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Lấy ID từ link hoặc mặc định là HS01
+    // Tự động lấy HS01 nếu không có ID trên link
     const urlParams = new URLSearchParams(window.location.search);
     const currentID = urlParams.get('id') || 'HS01';
 
-    // 1. Tải dữ liệu từ node users/HS01
-    database.ref('users/' + currentID).on('value', snap => {
-        const data = snap.val();
-        if (data) {
-            document.getElementById('student-name').innerText = data.ten;
-            document.getElementById('student-score').innerText = data.diem_ren_luyen;
-        } else {
-            document.getElementById('student-name').innerText = "SAI ID: " + currentID;
-        }
-    });
+    // Lấy dữ liệu từ users/HS01
+    function loadData() {
+        database.ref('users/' + currentID).on('value', snap => {
+            const data = snap.val();
+            if (data) {
+                document.getElementById('student-name').innerText = data.ten;
+                document.getElementById('student-score').innerText = data.diem_ren_luyen;
+            } else {
+                document.getElementById('student-name').innerText = "SAI ID: " + currentID;
+            }
+        });
+    }
 
-    // 2. Nhận diện khuôn mặt tự động
     async function initAI() {
         const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
         try {
@@ -90,26 +91,30 @@
             setInterval(async () => {
                 const detections = await faceapi.detectAllFaces('video', new faceapi.TinyFaceDetectorOptions());
                 if (detections.length > 0) {
-                    document.getElementById('face-status').innerText = "✅ ĐÃ ĐIỂM DANH TỰ ĐỘNG";
-                    document.getElementById('face-status').style.background = "rgba(85, 239, 196, 0.3)";
+                    const status = document.getElementById('face-status');
+                    status.innerText = "✅ ĐÃ ĐIỂM DANH TỰ ĐỘNG";
+                    status.style.background = "rgba(85, 239, 196, 0.3)";
                 }
             }, 2000);
         } catch (e) {
-            document.getElementById('face-status').innerText = "⚠️ Lỗi Camera";
+            document.getElementById('face-status').innerText = "⚠️ Đang chờ Camera...";
         }
     }
 
-    // 3. Gửi đơn xin nghỉ vào node xin_nghi
     function guiDonXinNghi() {
         const lyDo = document.getElementById('reason-input').value;
-        if(!lyDo) return alert("Nhập lý do!");
+        if(!lyDo) return alert("Vui lòng nhập lý do!");
         database.ref('xin_nghi/' + currentID).set({
             ten: document.getElementById('student-name').innerText,
             ly_do: lyDo,
             thoi_gian: new Date().toLocaleString()
-        }).then(() => alert("Đã gửi đơn!"));
+        }).then(() => {
+            alert("Đã gửi đơn thành công!");
+            document.getElementById('reason-input').value = "";
+        });
     }
 
+    loadData();
     initAI();
 </script>
 </body>
