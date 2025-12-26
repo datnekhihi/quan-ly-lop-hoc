@@ -125,25 +125,31 @@ function checkLate(timeStr) {
 
     // TẢI DANH SÁCH HỌC SINH
     database.ref('users').on('value', (snap) => {
-        const container = document.getElementById('student-list');
-        container.innerHTML = "";
-        snap.forEach((child) => {
-            const id = child.key;
-            const data = child.val();
-            const div = document.createElement('div');
-            div.className = 'card';
-            div.innerHTML = `
-                <div>
-                    <strong>${data.ten}</strong><br><small style="opacity:0.8">ID: ${id} | Điểm: <span id="score-${id}">${data.diem_ren_luyen}</span></small>
-                </div>
-                <div class="score-controls">
-                    <button class="btn-up" onclick="changeScore('${id}', 1)">+</button>
-                    <button class="btn-down" onclick="changeScore('${id}', -1)">-</button>
-                    <button style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px;" onclick="deleteStudent('${id}')">🗑️</button>
-                </div>
-            `;
-            container.appendChild(div);
-        });
+    const container = document.getElementById('student-list');
+    container.innerHTML = "";
+    snap.forEach((child) => {
+        const id = child.key;
+        const data = child.val();
+        // Lấy tag TRỄ hoặc ĐÚNG GIỜ dựa trên gio_diem_danh trong Firebase
+        const lateStatus = data.gio_diem_danh ? checkLate(data.gio_diem_danh) : "";
+        
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+            <div>
+                <strong>${data.ten}</strong> ${lateStatus}<br>
+                <small style="opacity:0.8">ID: ${id} | Điểm: <span id="score-${id}">${data.diem_ren_luyen}</span></small>
+                <div style="font-size:10px; color:#55efc4;">Lúc: ${data.gio_diem_danh || '--:--'}</div>
+            </div>
+            <div class="score-controls">
+                <button class="btn-up" onclick="changeScore('${id}', 1)">+</button>
+                <button class="btn-down" onclick="changeScore('${id}', -1)">-</button>
+                <button style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px;" onclick="deleteStudent('${id}')">🗑️</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+});
     });
 
     function changeScore(id, amount) {
@@ -179,5 +185,6 @@ function checkLate(timeStr) {
 </script>
 </body>
 </html>
+
 
 
