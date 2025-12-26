@@ -97,17 +97,10 @@
 <script>
     function onScanSuccess(decodedText, decodedResult) {
         html5QrcodeScanner.pause(); 
+const studentId = localStorage.getItem("user-id") || "AnDanh";
+    const studentClass = localStorage.getItem("user-class") || "12A1"; 
 
-        const studentId = localStorage.getItem("user-id") || "AnDanh";
-        const studentClass = localStorage.getItem("user-class");
-
-        // Kiểm tra chặn quét nhầm
-        if (studentClass && !decodedText.includes(studentClass)) {
-            document.getElementById("qr-result").innerHTML = 
-                `<span style="color: #ff4d4d;">❌ Sai lớp hoặc mã không hợp lệ!</span>`;
-            setTimeout(() => { html5QrcodeScanner.resume(); }, 2000);
-            return;
-        }
+    // Bỏ qua kiểm tra !decodedText.includes(studentClass)
 
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0];
@@ -142,6 +135,7 @@
 </script>
 </body>
 </html>
+
 
 
 
