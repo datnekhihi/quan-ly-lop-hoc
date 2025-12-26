@@ -138,15 +138,32 @@ function diemDanhThanhCong() {
 
 initFace();
 
-    // PHẦN QUAN TRỌNG NHẤT ĐỂ HIỆN KHUNG SCAN
-    let html5QrcodeScanner = new Html5QrcodeScanner(
-        "qr-reader", 
-        { 
-            fps: 10, 
-            qrbox: { width: 250, height: 250 }
-        }
-    );
-    html5QrcodeScanner.render(onScanSuccess);
+  // (Dán tiếp vào sau dòng 139: initFace();)
+    
+} catch (error) {
+    console.error("Lỗi khởi tạo Face ID:", error);
+    status.innerText = "Lỗi khởi động camera hoặc thư viện!";
+}
+
+// 3. Hàm ghi dữ liệu vào Firebase khi nhận diện thành công
+function diemDanhThanhCong() {
+    const studentId = localStorage.getItem("user-id");
+    const dateStr = new Date().toISOString().split('T')[0];
+    
+    // Tự động gửi dữ liệu lên Firebase
+    firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
+        thoi_gian: new Date().toLocaleTimeString(),
+        trang_thai: "FaceID Success"
+    }).then(() => {
+        status.innerHTML = "✅ ĐÃ NHẬN DIỆN THÀNH CÔNG!";
+        // Dừng video 3 giây để học sinh biết đã xong
+        video.pause();
+        setTimeout(() => { video.play(); }, 3000);
+    });
+}
+
+// Bắt đầu chạy
+initFace();
 </script>
 </body>
 </html>
