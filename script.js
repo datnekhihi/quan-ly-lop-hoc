@@ -135,7 +135,7 @@ function loadStudentData() {
     if (!currentID) return;
     database.ref('users/' + currentID).on('value', (snap) => {
         const data = snap.val();
-        localStorage.setItem("user-class", data.lop || data.tenLop);
+        localStorage.setItem("user-class", data.lop_hoc || "12A1"); // Thay 'lop_hoc' bằng tên cột lớp trên Firebase của bạn
         if (!data) return;
         document.getElementById('student-name').innerText = data.ten;
         document.getElementById('student-score').innerText = data.diem_ren_luyen || 0;
@@ -209,3 +209,4 @@ function duyetDon() {
     }).then(() => alert("Đã xác nhận cho con nghỉ!"));
 
 }
+
