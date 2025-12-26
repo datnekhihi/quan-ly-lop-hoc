@@ -95,25 +95,38 @@
 <script src="script.js"></script>
 <script>
     function onScanSuccess(decodedText, decodedResult) {
-    // 1. Tạm dừng quét để xử lý
     html5QrcodeScanner.pause(); 
 
-    // Lấy ID và Lớp của học sinh đã lưu lúc đăng nhập
     const studentId = localStorage.getItem("user-id") || "AnDanh";
-    const studentClass = localStorage.getItem("user-class"); // Giả sử bạn lưu lớp là 'user-class'
+    const studentClass = localStorage.getItem("user-class");
 
-    // 2. KIỂM TRA CHẶN QUÉT NHẦM
-    // Nếu nội dung mã QR (decodedText) không trùng với lớp của học sinh
-    if (studentClass && decodedText !== studentClass) {
+    // KIỂM TRA: Nếu bạn quét mã có chứa link, mình chỉ lấy chữ cái cuối hoặc chặn luôn
+    // Ở đây mình sẽ thiết lập: Nếu đúng lớp thì mới hiện chữ "Thành công" gọn gàng
+    if (studentClass && !decodedText.includes(studentClass)) {
         document.getElementById("qr-result").innerHTML = 
-            `<span style="color: #ff4d4d;">❌ Sai lớp! Bạn thuộc lớp ${studentClass}, không phải ${decodedText}</span>`;
+            `<span style="color: #ff4d4d;">❌ Sai lớp hoặc mã không hợp lệ!</span>`;
+        setTimeout(() => { html5QrcodeScanner.resume(); }, 2000);
+        return;
+    }
+
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleTimeString();
+
+    firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
+        lop: studentClass, // Lưu tên lớp của chính HS đó vào Firebase
+        thoi_gian: timeStr,
+        trang_thai: "Co mat"
+    }).then(() => {
+        // CHỈ HIỂN THỊ DÒNG NÀY (Gọn gàng theo ý bạn)
+        document.getElementById("qr-result").innerHTML = 
+            `<span style="color: #5effc4;">✅ Đã điểm danh thành công!</span>`;
         
-        // Đợi 3 giây rồi cho quét lại
         setTimeout(() => {
             html5QrcodeScanner.resume();
         }, 3000);
-        return; // Dừng lại, không gửi dữ liệu lên Firebase
-    }
+    });
+}
 
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
@@ -150,6 +163,7 @@ html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
 </html>
+
 
 
 
