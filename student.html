@@ -14,10 +14,9 @@
             display: flex; justify-content: center; align-items: center; 
             background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; 
             background-size: cover; font-family: 'Segoe UI', sans-serif;
-            position: relative;
+            position: relative; overflow: hidden;
         }
         
-        /* Nút thoát cố định, không đẩy giao diện */
         .btn-exit { 
             position: absolute; top: 15px; left: 15px; color: white; text-decoration: none; 
             background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 10px; 
@@ -25,25 +24,24 @@
             backdrop-filter: blur(5px);
         }
 
-        /* Thẻ chứa chính - Cố định ở giữa màn hình */
         .glass-card { 
-            background: rgba(0, 0, 0, 0.7); border-radius: 25px; padding: 25px; 
-            text-align: center; width: 90%; max-width: 350px; 
+            background: rgba(0, 0, 0, 0.75); border-radius: 25px; padding: 25px; 
+            text-align: center; width: 90%; max-width: 360px; 
             border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); color: white;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; gap: 10px;
+            display: flex; flex-direction: column; gap: 8px;
         }
 
-        h2 { margin: 0; font-size: 22px; }
-        h1 { font-size: 60px; margin: 0; color: #55efc4; line-height: 1; }
-        .label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.8; }
+        h2 { margin: 0; font-size: 24px; color: #fff; text-transform: uppercase; }
+        h1 { font-size: 65px; margin: 0; color: #55efc4; line-height: 1; font-weight: bold; }
+        .label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; margin-bottom: 5px; }
         
-        #video { border-radius: 15px; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border: 2px solid #55efc4; }
+        #video { border-radius: 20px; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border: 2px solid #55efc4; }
         
-        .status-box { padding: 12px; border-radius: 12px; background: rgba(85, 239, 196, 0.1); color: #55efc4; font-size: 14px; font-weight: bold; border: 1px solid rgba(85,239,196,0.3); }
+        .status-box { padding: 12px; border-radius: 12px; background: rgba(85, 239, 196, 0.15); color: #55efc4; font-size: 14px; font-weight: bold; border: 1px solid rgba(85,239,196,0.3); }
         
-        input { width: 100%; padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.15); color: white; text-align: center; outline: none; }
-        .btn-red { width: 100%; padding: 14px; border-radius: 12px; border: none; background: #ff7675; color: white; font-weight: bold; cursor: pointer; }
+        input { width: 100%; padding: 14px; border-radius: 12px; border: none; background: rgba(255,255,255,0.15); color: white; text-align: center; outline: none; font-size: 15px; }
+        .btn-red { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #ff7675; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -54,16 +52,15 @@
         <h2 id="student-name">ĐANG TẢI...</h2>
         <h1 id="student-score">--</h1>
         <div class="label">ĐIỂM RÈN LUYỆN</div><video id="video" autoplay muted playsinline></video>
-        <div id="face-status" class="status-box">Đang khởi động AI...</div>
+        <div id="face-status" class="status-box">🔍 Đang nhận diện...</div>
         
-        <div style="margin-top: 10px;">
+        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
             <input type="text" id="reason-input" placeholder="Lý do xin nghỉ...">
-            <button class="btn-red" style="margin-top:8px" onclick="guiDonXinNghi()">GỬI ĐƠN XIN NGHỈ</button>
+            <button class="btn-red" onclick="guiDonXinNghi()">GỬI ĐƠN XIN NGHỈ</button>
         </div>
     </div>
 
 <script>
-    // Cấu hình Database chính xác theo ảnh số 2 và 4 của bạn
     const firebaseConfig = {
         apiKey: "AIzaSyBuwC_mqQ0uO-5NSHLIJ5wq11dB-2kIop8",
         authDomain: "quanly-428c3.firebaseapp.com",
@@ -76,16 +73,18 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Lấy ID học sinh từ URL (ví dụ: ?id=HS01)
+    // SỬA LỖI MẤT DỮ LIỆU: Nếu không có ID trên link, mặc định lấy HS01
     const urlParams = new URLSearchParams(window.location.search);
-    const currentID = urlParams.get('id') || 'HS01';
+    const currentID = urlParams.get('id') || 'HS01'; 
 
     function loadData() {
         database.ref(currentID).on('value', snap => {
             const data = snap.val();
             if (data) {
-                document.getElementById('student-name').innerText = data.ten;
-                document.getElementById('student-score').innerText = data.diem_ren_luyen;
+                document.getElementById('student-name').innerText = data.ten || "KHÔNG TÊN";
+                document.getElementById('student-score').innerText = data.diem_ren_luyen || 0;
+            } else {
+                document.getElementById('student-name').innerText = "SAI ID";
             }
         });
     }
@@ -99,29 +98,30 @@
             ]);
             const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
             document.getElementById('video').srcObject = stream;
-            document.getElementById('face-status').innerText = "🔍 Đang tìm khuôn mặt...";
             
-            // Logic quét mặt tự động
             setInterval(async () => {
                 const detections = await faceapi.detectAllFaces('video', new faceapi.TinyFaceDetectorOptions());
                 if (detections.length > 0) {
-                    document.getElementById('face-status').innerHTML = "⭐ ĐIỂM DANH THÀNH CÔNG!";
-                    document.getElementById('face-status').style.background = "#55efc4";
-                    document.getElementById('face-status').style.color = "#000";
+                    const status = document.getElementById('face-status');
+                    status.innerHTML = "✅ ĐÃ ĐIỂM DANH TỰ ĐỘNG";
+                    status.style.background = "rgba(85, 239, 196, 0.3)";
+                    status.style.borderColor = "#55efc4";
                 }
             }, 2000);
         } catch (e) {
-            document.getElementById('face-status').innerText = "❌ Lỗi: " + e.message;
+            document.getElementById('face-status').innerText = "⚠️ Lỗi Camera hoặc AI";
         }
     }
 
     function guiDonXinNghi() {
         const lyDo = document.getElementById('reason-input').value;
-        if(lyDo) {database.ref(currentID).update({ 
-                ly_do_nghi: lyDo,
-                thoi_gian_nghi: new Date().toLocaleString()
-            }).then(() => alert("Đã gửi đơn xin nghỉ!"));
-        }
+        if(!lyDo) return alert("Vui lòng nhập lý do!");database.ref(currentID).update({ 
+            ly_do_nghi: lyDo,
+            thoi_gian_nghi: new Date().toLocaleString()
+        }).then(() => {
+            alert("Đã gửi đơn xin nghỉ thành công!");
+            document.getElementById('reason-input').value = "";
+        });
     }
 
     loadData();
