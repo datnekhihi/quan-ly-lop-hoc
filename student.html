@@ -49,26 +49,28 @@
     const video = document.getElementById('video');
     const status = document.getElementById('face-status');
 
-    // 1. Tải bộ não AI và mở Camera
     async function initFace() {
-        try {const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+        try {
+            const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
             await Promise.all([
                 faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
                 faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
                 faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
             ]);
             
-            status.innerText = "Đang kết nối Camera...";
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            status.innerText = "Đang mở Camera...";
+            // Thêm cấu hình bắt buộc để tránh lỗi trên một số trình duyệt
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } 
+            });
             video.srcObject = stream;
             status.innerText = "Sẵn sàng! Hãy nhìn thẳng vào máy";
         } catch (error) {
-            console.error(error);
-            status.innerText = "Lỗi: Hãy cấp quyền Camera!";
+            console.error("Lỗi chi tiết:", error);
+            status.innerText = "Lỗi: Hệ thống không thể truy cập Camera!";
         }
     }
 
-    // 2. Nhận diện và so sánh
     video.addEventListener('play', () => {
         setInterval(async () => {
             const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
@@ -78,14 +80,9 @@
             if (detections.length > 0) {
                 const savedFaceData = localStorage.getItem("user-face");
                 if (savedFaceData) {
-                    const savedFace = new Float32Array(JSON.parse(savedFaceData));
+                    const savedFace = new Float32Array(Object.values(JSON.parse(savedFaceData)));
                     const distance = faceapi.euclideanDistance(detections[0].descriptor, savedFace);
-                    
-                    if (distance < 0.5) { // Độ khớp > 70%
-                        diemDanhThanhCong();
-                    }
-                } else {
-                    status.innerText = "Chưa có dữ liệu khuôn mặt mẫu!";
+                    if (distance < 0.5) diemDanhThanhCong();
                 }
             }
         }, 1000);
@@ -94,7 +91,6 @@
     function diemDanhThanhCong() {
         const studentId = localStorage.getItem("user-id");
         if (!studentId) return;
-
         const dateStr = new Date().toISOString().split('T')[0];
         firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
             thoi_gian: new Date().toLocaleTimeString(),
@@ -102,12 +98,11 @@
         }).then(() => {
             status.innerHTML = "✅ NHẬN DIỆN THÀNH CÔNG!";
             video.pause();
-            setTimeout(() => { video.play(); status.innerText = "Hãy nhìn thẳng vào camera"; }, 5000);
         });
     }
 
-    // Khởi chạy
-    initFace();
+    initFace(); // Lệnh khởi chạy nằm ở đây
 </script>
 </body>
 </html>
+
