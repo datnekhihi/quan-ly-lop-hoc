@@ -122,7 +122,17 @@ function checkLate(timeStr) {
             }
         });
     }
-
+function checkLate(timeStr) {
+    if (!timeStr || timeStr === "") return "";
+    const parts = timeStr.split(':');
+    const hour = parseInt(parts[0]);
+    const minute = parseInt(parts[1]);
+    // Nếu sau 6:55 thì hiện tag TRỄ màu đỏ/vàng
+    if (hour > 6 || (hour === 6 && minute > 55)) {
+        return '<span style="background:#ffeaa7; color:#d63031; padding:2px 5px; border-radius:5px; font-size:10px; margin-left:5px; border:1px solid #fab1a0;">TRỄ</span>';
+    }
+    return '<span style="background:#55efc4; color:#000; padding:2px 5px; border-radius:5px; font-size:10px; margin-left:5px;">ĐÚNG GIỜ</span>';
+}
     // TẢI DANH SÁCH HỌC SINH
     database.ref('users').on('value', (snap) => {
     const container = document.getElementById('student-list');
@@ -185,6 +195,7 @@ function checkLate(timeStr) {
 </script>
 </body>
 </html>
+
 
 
 
