@@ -95,21 +95,32 @@
 <script src="script.js"></script>
 <script>
     function onScanSuccess(decodedText, decodedResult) {
-        const studentId = localStorage.getItem("user-id");
-        const now = new Date();
-        const dateStr = now.toISOString().split('T')[0];
-        const timeStr = now.toLocaleTimeString();
+    // 1. Tạm dừng quét để tránh gửi dữ liệu liên tục nhiều lần
+    html5QrcodeScanner.pause(); 
 
-        // Gửi dữ liệu điểm danh lên Firebase
-        firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
-            lop: decodedText,
-            thoi_gian: timeStr,
-            trang_thai: "Co mat"
-        }).then(() => {
-            document.getElementById("qr-result").innerText = "✅ Thành công: " + timeStr;
-            alert("Bạn đã điểm danh thành công lớp " + decodedText);
-        });
-    }
+    const studentId = localStorage.getItem("user-id") || "AnDanh";
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleTimeString();
+
+    // 2. Gửi dữ liệu lên Firebase
+    firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
+        lop: decodedText,
+        thoi_gian: timeStr,
+        trang_thai: "Co mat"
+    }).then(() => {
+        // Cập nhật thông báo lên màn hình thay vì dùng alert gây đứng hình
+        document.getElementById("qr-result").innerHTML = `<span style="color: #5effc4;">✅ Đã điểm danh lớp ${decodedText}</span>`;
+        
+        // 3. Đợi 2 giây để học sinh thấy thông báo rồi mới cho quét tiếp
+        setTimeout(() => {
+            html5QrcodeScanner.resume();
+        }, 2000);
+    }).catch(error => {
+        console.error("Lỗi:", error);
+        html5QrcodeScanner.resume(); 
+    });
+}
 
     let html5QrcodeScanner = new Html5QrcodeScanner(
     "qr-reader", 
@@ -124,4 +135,5 @@ html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
 </html>
+
 
