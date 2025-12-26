@@ -135,6 +135,7 @@ function loadStudentData() {
     if (!currentID) return;
     database.ref('users/' + currentID).on('value', (snap) => {
         const data = snap.val();
+        localStorage.setItem("user-class", data.lop || data.tenLop);
         if (!data) return;
         document.getElementById('student-name').innerText = data.ten;
         document.getElementById('student-score').innerText = data.diem_ren_luyen || 0;
@@ -206,4 +207,5 @@ function duyetDon() {
     database.ref('users/' + currentID).update({ 
         trang_thai: "Nghỉ có phép (PH đã duyệt)" 
     }).then(() => alert("Đã xác nhận cho con nghỉ!"));
+
 }
