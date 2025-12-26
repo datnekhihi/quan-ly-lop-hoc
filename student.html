@@ -108,60 +108,32 @@
         setTimeout(() => { html5QrcodeScanner.resume(); }, 2000);
         return;
     }
-
-    const now = new Date();
+const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
     const timeStr = now.toLocaleTimeString();
 
+    // 2. Gửi dữ liệu lên Firebase
     firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
-        lop: studentClass, // Lưu tên lớp của chính HS đó vào Firebase
+        lop: studentClass || "Không rõ",
         thoi_gian: timeStr,
         trang_thai: "Co mat"
     }).then(() => {
-        // CHỈ HIỂN THỊ DÒNG NÀY (Gọn gàng theo ý bạn)
+        // CHỈ HIỂN THỊ DÒNG CHỮ THÀNH CÔNG GỌN GÀNG
         document.getElementById("qr-result").innerHTML = 
             `<span style="color: #5effc4;">✅ Đã điểm danh thành công!</span>`;
         
+        // Đợi 3 giây rồi cho quét tiếp
         setTimeout(() => {
             html5QrcodeScanner.resume();
         }, 3000);
-    });
-}
-    // Đoạn code này giúp hiển thị lại khung camera
-let html5QrcodeScanner = new Html5QrcodeScanner(
-    "qr-reader", 
-    { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true,
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA] 
-    }
-);
-html5QrcodeScanner.render(onScanSuccess);
-
-    const now = new Date();
-    const dateStr = now.toISOString().split('T')[0];
-    const timeStr = now.toLocaleTimeString();
-
-    // 3. Gửi dữ liệu nếu đúng lớp
-    firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
-        lop: decodedText,
-        thoi_gian: timeStr,
-        trang_thai: "Co mat"
-    }).then(() => {
-        document.getElementById("qr-result").innerHTML = 
-            `<span style="color: #5effc4;">✅ Đã điểm danh lớp thành công!</span>`;
-        
-        setTimeout(() => {
-            html5QrcodeScanner.resume();
-        }, 2000);
     }).catch(error => {
         console.error("Lỗi:", error);
         html5QrcodeScanner.resume(); 
     });
 }
 
-    let html5QrcodeScanner = new Html5QrcodeScanner(
+// 3. KHỞI TẠO CAMERA (Phần bạn đang bị thiếu khiến màn hình trắng)
+let html5QrcodeScanner = new Html5QrcodeScanner(
     "qr-reader", 
     { 
         fps: 10, 
@@ -174,6 +146,7 @@ html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
 </html>
+
 
 
 
