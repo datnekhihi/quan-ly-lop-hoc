@@ -78,8 +78,11 @@
         <h2 id="student-name">Đang tải...</h2>
         <h1 id="student-score">--</h1>
         <p class="label">ĐIỂM RÈN LUYỆN</p>
-        <div id="qr-reader" style="width: 100%; border-radius: 15px; margin-bottom: 20px;"></div>
-        <div id="qr-result" style="color: #5effc4; font-weight: bold; margin-bottom: 10px;"></div>
+       <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+    <video id="video" width="350" height="260" autoplay muted style="border-radius: 15px; background: #000;"></video>
+    <canvas id="overlay" style="position: absolute; top: 0;"></canvas>
+    <p id="face-status" style="margin-top: 10px; color: #5effc4;">Đang khởi động Face ID...</p>
+</div>
         <button class="btn btn-green" onclick="baoDanh()">BÁO DANH CÓ MẶT</button>
 
         <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;"><input type="text" id="reason-input" placeholder="Nhập lý do xin nghỉ...">
@@ -89,39 +92,51 @@
         <a href="index.html" class="logout-link">ĐĂNG XUẤT</a>
     </div>
 
-   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="firebase.config.js"></script>
-<script src="script.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     
 <script>
-    function onScanSuccess(decodedText, decodedResult) {
-        html5QrcodeScanner.pause(); 
-const studentId = localStorage.getItem("user-id") || "AnDanh";
-    const studentClass = localStorage.getItem("user-class") || "12A1"; 
+    const video = document.getElementById('video');
+const status = document.getElementById('face-status');
 
-    // Bỏ qua kiểm tra !decodedText.includes(studentClass)
+// 1. Tải não bộ AI
+async function initFace() {
+    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+    await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]);
+    status.innerText = "Hãy nhìn thẳng vào camera";
+    navigator.mediaDevices.getUserMedia({ video: {} }).then(stream => video.srcObject = stream);
+}
 
-        const now = new Date();
-        const dateStr = now.toISOString().split('T')[0];
-        const timeStr = now.toLocaleTimeString();
+// 2. Vòng lặp nhận diện liên tục
+video.addEventListener('play', () => {
+    setInterval(async () => {
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+        if (detections.length > 0) {
+            const savedFace = JSON.parse(localStorage.getItem("user-face"));
+            if (savedFace) {
+                const distance = faceapi.euclideanDistance(detections[0].descriptor, savedFace);
+                if (distance < 0.5) { // Nếu khớp trên 70%
+                    diemDanhThanhCong();
+                }
+            }
+        }
+    }, 1000);
+});
 
-        firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
-            lop: studentClass || "Không rõ",
-            thoi_gian: timeStr,
-            trang_thai: "Co mat"
-        }).then(() => {
-            document.getElementById("qr-result").innerHTML = 
-                `<span style="color: #5effc4;">✅ Đã điểm danh thành công!</span>`;
-            
-            setTimeout(() => {
-                html5QrcodeScanner.resume();
-            }, 3000);
-        }).catch(error => {
-            console.error("Lỗi:", error);
-            html5QrcodeScanner.resume(); 
-        });
-    }
+function diemDanhThanhCong() {
+    const studentId = localStorage.getItem("user-id");
+    const dateStr = new Date().toISOString().split('T')[0];
+    firebase.database().ref('diem_danh/' + dateStr + '/' + studentId).set({
+        thoi_gian: new Date().toLocaleTimeString(),
+        trang_thai: "FaceID Success"
+    });
+    status.innerHTML = "✅ ĐÃ NHẬN DIỆN THÀNH CÔNG!";
+}
+
+initFace();
 
     // PHẦN QUAN TRỌNG NHẤT ĐỂ HIỆN KHUNG SCAN
     let html5QrcodeScanner = new Html5QrcodeScanner(
@@ -135,6 +150,7 @@ const studentId = localStorage.getItem("user-id") || "AnDanh";
 </script>
 </body>
 </html>
+
 
 
 
