@@ -56,6 +56,7 @@
     </div>
 
 <script>
+    // Cấu hình Firebase chuẩn theo ảnh của bạn
     const firebaseConfig = {
         apiKey: "AIzaSyBuwC_mqQ0uO-5NSHLIJ5wq11dB-2kIop8",
         authDomain: "quanly-428c3.firebaseapp.com",
@@ -68,40 +69,30 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Lấy ID từ link
+    // Lấy ID từ thanh địa chỉ (Vd: ?id=HS02)
     const urlParams = new URLSearchParams(window.location.search);
-    let rawID = urlParams.get('id') || 'HS01'; 
+    let currentID = urlParams.get('id');
 
-    function loadData() {
-        // Thử tìm với ID gốc (Vd: HS01)
-        database.ref(rawID).on('value', snap => {
-            let data = snap.val();
-            
-            // Nếu không thấy, thử tìm với bản viết hoa (Vd: HS01)
-            if (!data) {
-                database.ref(rawID.toUpperCase()).once('value', s => {
-                    if (s.val()) updateUI(s.val());
-                    else {
-                        // Nếu vẫn không thấy, thử tìm bản viết thường (Vd: hs01)
-                        database.ref(rawID.toLowerCase()).once('value', s2 => {
-                            if (s2.val()) updateUI(s2.val());
-                            else document.getElementById('student-name').innerText = "SAI ID: " + rawID;
-                        });
-                    }
-                });
+    // Nếu không có ID trên link, mặc định lấy HS01 để không bị lỗi "SAI ID"
+    if (!currentID) currentID = 'HS01';
+
+    function loadStudentData() {
+        // Truy cập thẳng vào node HS01, HS02... tại gốc Database
+        database.ref(currentID).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Hiện tên và điểm lên màn hình
+                document.getElementById('student-name').innerText = data.ten || "Chưa có tên";
+                document.getElementById('student-score').innerText = data.diem_ren_luyen || "0";
+                console.log("Đã tải dữ liệu cho:", currentID);
             } else {
-                updateUI(data);
+                document.getElementById('student-name').innerText = "KHÔNG TÌM THẤY " + currentID;
             }
         });
     }
 
-    function updateUI(data) {
-        document.getElementById('student-name').innerText = data.ten || "KHÔNG TÊN";
-        document.getElementById('student-score').innerText = data.diem_ren_luyen || 0;
-        console.log("Đã khớp dữ liệu!");
-    }
-
-    async function initAI() {
+    // Khởi tạo Camera và AI
+    async function startAI() {
         const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
         try {
             await Promise.all([
@@ -111,30 +102,35 @@
             const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
             document.getElementById('video').srcObject = stream;
             
+            // Tự động nhận diện mỗi 2 giây
             setInterval(async () => {
                 const detections = await faceapi.detectAllFaces('video', new faceapi.TinyFaceDetectorOptions());
                 if (detections.length > 0) {
                     const status = document.getElementById('face-status');
-                    status.innerHTML = "✅ ĐÃ ĐIỂM DANH TỰ ĐỘNG";
-                    status.style.background = "rgba(85, 239, 196, 0.3)";
+                    status.innerHTML = "⭐ ĐIỂM DANH THÀNH CÔNG!";
+                    status.style.background = "#55efc4";
+                    status.style.color = "#000";
                 }
             }, 2000);
         } catch (e) {
-            console.log("Chờ camera...");
+            console.error("Lỗi camera:", e);
         }
     }
 
-    function guiDonXinNghi() {const lyDo = document.getElementById('reason-input').value;
-        if(!lyDo) return alert("Nhập lý do đã!");
-        database.ref(rawID).update({ 
-            ly_do_nghi: lyDo,
+    function guiDonXinNghi() {
+        const lyDo = document.getElementById('reason-input').value;
+        if (!lyDo) return alert("Vui lòng nhập lý do!");
+        
+        database.ref(currentID).update({ly_do_nghi: lyDo,
             thoi_gian_nghi: new Date().toLocaleString()
-        }).then(() => alert("Đã gửi đơn!"));
+        }).then(() => alert("Đã gửi đơn xin nghỉ!"));
     }
 
-    loadData();
-    initAI();
+    // Chạy các hàm
+    loadStudentData();
+    startAI();
 </script>
 </body>
 </html>
+
 
