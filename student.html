@@ -126,7 +126,7 @@
         trang_thai: "Co mat"
     }).then(() => {
         document.getElementById("qr-result").innerHTML = 
-            `<span style="color: #5effc4;">✅ Đã điểm danh lớp ${decodedText} thành công!</span>`;
+            `<span style="color: #5effc4;">✅ Đã điểm danh lớp thành công!</span>`;
         
         setTimeout(() => {
             html5QrcodeScanner.resume();
@@ -150,6 +150,7 @@ html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
 </html>
+
 
 
 
