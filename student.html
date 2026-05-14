@@ -30,6 +30,21 @@
         <button class="btn-exit" onclick="window.location.href='index.html'">THOÁT</button>
     </div>
     <script>
+        // Lấy ID từ URL (ví dụ student.html?id=HS01)
+const layThamSo = new URLSearchParams(window.location.search);
+const currentID = layThamSo.get('id');
+
+// Kiểm tra nếu có ID thì mới tải tên
+if (currentID) {
+    database.ref('users/' + currentID).on('value', (snap) => {
+        const data = snap.val();
+        if (data) {
+            document.getElementById('name').innerText = data.ten;
+            document.getElementById('diem-hien-tai').innerText = data.diem_ren_luyen || 0;
+            document.getElementById('trang-thai-hien-tai').innerText = data.trang_thai || "...";
+        }
+    });
+}
         var searchParams = new URLSearchParams(window.location.search);
         var idHocSinh = searchParams.get('id');
 
