@@ -103,6 +103,7 @@
                     <td>${data.diem_ren_luyen || 0}</td>
                     <td>
                         <button class="action-btn" onclick="congDiem('${id}', ${data.diem_ren_luyen || 0})">+ Điểm</button>
+                        <button class="action-btn" onclick="truDiem('${id}', ${data.diem_ren_luyen || 0})">- Điểm</button>
                         <button class="action-btn" style="border-color: #ff7675; color: #ff7675;" onclick="xoaHocSinh('${id}')">Xóa</button>
                     </td>
                 `;
@@ -113,6 +114,8 @@
         // 3. Các hàm bổ trợ
         function congDiem(id, diemHT) {
             database.ref('users/' + id).update({ diem_ren_luyen: diemHT + 1 });
+        function truDiem(id, diemHT) {
+            database.ref('users/' + id).update({ diem_ren_luyen: diemHT - 1 });
         }
 
         function xoaHocSinh(id) {
