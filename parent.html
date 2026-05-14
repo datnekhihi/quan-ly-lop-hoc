@@ -51,6 +51,15 @@
         } else {
             document.getElementById('p-ten').innerText = "THIẾU ID";
         }
+        // Đoạn này đảm bảo Phụ huynh luôn thấy dữ liệu mới nhất
+database.ref('users/' + idHocSinh).on('value', (snap) => {
+    var d = snap.val();
+    if(d) {
+        document.getElementById('p-ten').innerText = d.ten;
+        document.getElementById('p-status').innerText = d.trang_thai || "Ngoại tuyến";
+        document.getElementById('p-diem').innerText = d.diem_ren_luyen || 0;
+    }
+});
     </script>
 </body>
 </html>
