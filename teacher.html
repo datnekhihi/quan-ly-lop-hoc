@@ -96,9 +96,10 @@
                 tr.innerHTML = `
                     <td><b>${id}</b></td>
                     <td>${data.ten}</td>
+                    // ... trong đoạn desktop.innerHTML hoặc mobile.innerHTML
                     <td>
                         <span class="status-tag ${data.trang_thai === 'Có mặt' ? 'tag-present' : (data.trang_thai === 'Trễ' ? 'tag-late' : 'tag-absent')}">
-                                                 ${data.trang_thai}
+                            ${data.trang_thai}
                         </span>
                     </td>
                     <td>${data.diem_ren_luyen || 0}</td>
