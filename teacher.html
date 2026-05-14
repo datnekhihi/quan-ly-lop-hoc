@@ -49,62 +49,50 @@
     </div>
 
     <script>
-        // Hàm thêm học sinh
-        function themHocSinh() {
-            var id = document.getElementById('hs_id').value.trim();
-            var ten = document.getElementById('hs_name').value.trim();
-            if(!id || !ten) return alert("Vui lòng nhập đủ thông tin!");
+     database.ref('users').on('value', (snap) => {
+    var list = document.getElementById('student-list');
+    list.innerHTML = "";
+    snap.forEach((child) => {
+        var s = child.val();
+        var key = child.key;
+        if(key.startsWith('HS')) { 
+            // Hiển thị lý do nếu có đơn chờ duyệt
+            var note = s.ly_do ? `<br><small style="color:#ffeaa7">📝 Lý do: ${s.ly_do}</small>` : "";
+            var btnDuyet = s.ly_do ? `<button onclick="pheDuyet('${key}')" style="background:#00b894; color:white; margin-right:5px">DUYỆT</button>` : "";
 
-            database.ref('users/' + id).set({
-                ten: ten,
-                diem_ren_luyen: 100,
-                trang_thai: "Chưa điểm danh"
-            }).then(() => {
-                alert("Đã thêm học sinh " + ten);
-                document.getElementById('hs_id').value = "";
-                document.getElementById('hs_name').value = "";
-            });
+            var row = `<tr>
+                <td>${key}</td>
+                <td>${s.ten} ${note}</td>
+                <td>${s.trang_thai || "---"}</td>
+                <td style="font-weight:bold; color:#55efc4">${s.diem_ren_luyen || 0}</td>
+                <td>
+                    ${btnDuyet}
+                    <button class="btn-plus" onclick="changeScore('${key}', 1)">+</button>
+                    <button class="btn-minus" onclick="changeScore('${key}', -1)">-</button>
+                    <button class="btn-del" onclick="xoaHS('${key}')">Xóa</button>
+                </td>
+            </tr>`;
+            list.innerHTML += row;
         }
+    });
+});
 
-        // Tải danh sách
-        database.ref('users').on('value', (snap) => {
-            var list = document.getElementById('student-list');
-            list.innerHTML = "";
-            snap.forEach((child) => {
-                var s = child.val();
-                var key = child.key;
-                if(key.startsWith('HS')) { 
-                    var row = `<tr>
-                        <td>${key}</td>
-                        <td>${s.ten}</td>
-                        <td>${s.trang_thai || "---"}</td>
-                        <td style="font-weight:bold; color:#55efc4">${s.diem_ren_luyen || 0}</td>
-                        <td>
-                            <button class="btn-plus" onclick="changeScore('${key}', 1)">+</button>
-                            <button class="btn-minus" onclick="changeScore('${key}', -1)">-</button>
-                            <button class="btn-del" onclick="xoaHS('${key}')">Xóa</button>
-                        </td>
-                    </tr>`;
-                    list.innerHTML += row;
-                }
-            });
+function pheDuyet(idHS) {
+    if(confirm("Xác nhận duyệt đơn cho học sinh này?")) {
+        database.ref('users/' + idHS).update({
+            trang_thai: "Đã duyệt",
+            ly_do: null // Xóa lý do sau khi duyệt xong
         });
+    }
+}
 
-        // Hàm cộng trừ điểm
-        function changeScore(idHS, amount) {
-            const studentRef = database.ref('users/' + idHS + '/diem_ren_luyen');
-            studentRef.once('value').then((snapshot) => {
-                let currentScore = snapshot.val() || 0;
-                studentRef.set(currentScore + amount);
-            });
-        }
-
-        // Hàm xóa học sinh
-        function xoaHS(id) {
-            if(confirm("Xóa học sinh " + id + "?")) {
-                database.ref('users/' + id).remove();
-            }
-        }
+function changeScore(idHS, amount) {
+    const studentRef = database.ref('users/' + idHS + '/diem_ren_luyen');
+    studentRef.once('value').then((snapshot) => {
+        let currentScore = snapshot.val() || 0;
+        studentRef.set(currentScore + amount);
+    });
+}
     </script>
 </body>
 </html>
