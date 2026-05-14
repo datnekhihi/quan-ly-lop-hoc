@@ -5,7 +5,6 @@
     <title>Học Sinh - Smart Attendee</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- Đạt nhớ kiểm tra xem file này trên GitHub tên là firebase.config.js hay firebase-config.js nhé -->
     <script src="firebase.config.js"></script>
     <style>
         body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center;
@@ -25,57 +24,45 @@
         <h2 id="name">ĐANG TẢI...</h2>
         <p>Điểm: <span id="score">0</span></p>
         <p>Trạng thái: <span id="status">...</span></p>
-        
         <button class="btn-checkin" onclick="checkIn()">BẤM ĐIỂM DANH NHANH</button>
-        
         <input type="text" id="reason" placeholder="Lý do xin nghỉ...">
         <button class="btn-leave" onclick="xinNghi()">GỬI ĐƠN XIN NGHỈ</button>
-
         <button class="btn-exit" onclick="window.location.href='index.html'">THOÁT</button>
     </div>
-
     <script>
-        // CHỈ KHAI BÁO MỘT LẦN DUY NHẤT Ở ĐÂY
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentID = urlParams.get('id');
+        var searchParams = new URLSearchParams(window.location.search);
+        var idHocSinh = searchParams.get('id');
 
-        if (!currentID) {
-            alert("Lỗi: Không tìm thấy ID học sinh trên link!");
-        } else {
-            database.ref('users/' + currentID).on('value', (snap) => {
-                const data = snap.val();
-                if(data) {
-                    document.getElementById('name').innerText = data.ten;
-                    document.getElementById('score').innerText = data.diem_ren_luyen || 0;
-                    document.getElementById('status').innerText = data.trang_thai || "Chưa điểm danh";
+        if (idHocSinh && typeof database !== 'undefined') {
+            database.ref('users/' + idHocSinh).on('value', (snap) => {
+                var val = snap.val();
+                if(val) {
+                    document.getElementById('name').innerText = val.ten;
+                    document.getElementById('score').innerText = val.diem_ren_luyen || 0;
+                    document.getElementById('status').innerText = val.trang_thai || "Chưa điểm danh";
                 }
             });
         }
 
         function checkIn() {
-            if(!currentID) return alert("Không có ID!");
-            const now = new Date();
-            let tinhTrang = (now.getHours() >= 7) ? "Trễ" : "Có mặt";
-
-            database.ref('users/' + currentID).update({
-                trang_thai: tinhTrang,
-                gio_diem_danh: now.toLocaleTimeString('vi-VN', { hour12: false })
-            }).then(() => {
-                alert("Đã điểm danh: " + tinhTrang);
-            });
+            if(!idHocSinh) return alert("Thiếu ID!");
+            var gio = new Date().getHours();
+            var tt = (gio >= 7) ? "Trễ" : "Có mặt";
+            database.ref('users/' + idHocSinh).update({
+                trang_thai: tt,
+                gio_diem_danh: new Date().toLocaleTimeString('vi-VN', { hour12: false })
+            }).then(() => alert("Xong!"));
         }
 
         function xinNghi() {
-            if(!currentID) return;
-            const r = document.getElementById('reason').value.trim();
+            var r = document.getElementById('reason').value.trim();
             if(!r) return alert("Nhập lý do!");
-            
-            database.ref('xin_nghi/' + currentID).set({
+            database.ref('xin_nghi/' + idHocSinh).set({
                 ten: document.getElementById('name').innerText,
                 ly_do: r,
                 thoi_gian: new Date().toLocaleString()
             }).then(() => {
-                database.ref('users/' + currentID).update({ trang_thai: "Xin nghỉ" });
+                database.ref('users/' + idHocSinh).update({ trang_thai: "Xin nghỉ" });
                 alert("Đã gửi đơn!");
             });
         }
