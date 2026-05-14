@@ -7,12 +7,11 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="/quan-ly-lop-hoc/firebase.config.js"></script>
     <style>
-        .tag-late { background: #fdcb6e; color: #000; } /* Màu vàng cam cho dễ nhìn */
         body { margin: 0; min-height: 100vh; background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .glass-panel { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; color: white; width: 90%; max-width: 800px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
         h2 { color: #55efc4; text-align: center; margin-top: 0; }
         .input-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: none; min-width: 150px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: none; min-width: 150px; color: #000; }
         button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-add { background: #55efc4; color: #000; }
         .btn-add:hover { background: #00b894; }
@@ -24,6 +23,7 @@
         .status-tag { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .tag-present { background: #55efc4; color: #000; }
         .tag-absent { background: #ff7675; color: #fff; }
+        .tag-late { background: #fdcb6e; color: #000; }
         
         .action-btn { background: none; border: 1px solid #55efc4; color: #55efc4; padding: 5px 10px; font-size: 12px; margin-right: 5px; }
         .action-btn:hover { background: #55efc4; color: #000; }
@@ -56,15 +56,12 @@
                     <th>Thao tác</th>
                 </tr>
             </thead>
-            <tbody id="student-list">
-                <!-- Dữ liệu sẽ tự động đổ vào đây -->
-            </tbody>
+            <tbody id="student-list"></tbody>
         </table>
     </div>
 
-    <script src="firebase-config.js"></script>
     <script>
-        // 1. Hàm thêm học sinh mới vào nhánh "users"
+        // 1. Hàm thêm học sinh mới
         function themHocSinh() {
             const id = document.getElementById('hs-id').value.trim();
             const ten = document.getElementById('hs-ten').value.trim();
@@ -83,24 +80,26 @@
             });
         }
 
-        // 2. Lắng nghe dữ liệu để hiển thị danh sách
+        // 2. Lắng nghe dữ liệu
         database.ref('users').on('value', (snapshot) => {
             const list = document.getElementById('student-list');
-            list.innerHTML = ""; // Xóa danh sách cũ để nạp lại
+            list.innerHTML = "";
             
             snapshot.forEach((child) => {
                 const id = child.key;
                 const data = child.val();
                 
                 const tr = document.createElement('tr');
+                // Xác định class màu sắc dựa trên trạng thái
+                let tagClass = 'tag-absent';
+                if(data.trang_thai === 'Có mặt') tagClass = 'tag-present';
+                else if(data.trang_thai === 'Trễ') tagClass = 'tag-late';
+
                 tr.innerHTML = `
                     <td><b>${id}</b></td>
                     <td>${data.ten}</td>
-                    // ... trong đoạn desktop.innerHTML hoặc mobile.innerHTML
                     <td>
-                        <span class="status-tag ${data.trang_thai === 'Có mặt' ? 'tag-present' : (data.trang_thai === 'Trễ' ? 'tag-late' : 'tag-absent')}">
-                            ${data.trang_thai}
-                        </span>
+                        <span class="status-tag ${tagClass}">${data.trang_thai}</span>
                     </td>
                     <td>${data.diem_ren_luyen || 0}</td>
                     <td>
@@ -116,6 +115,8 @@
         // 3. Các hàm bổ trợ
         function congDiem(id, diemHT) {
             database.ref('users/' + id).update({ diem_ren_luyen: diemHT + 1 });
+        }
+
         function truDiem(id, diemHT) {
             database.ref('users/' + id).update({ diem_ren_luyen: diemHT - 1 });
         }
