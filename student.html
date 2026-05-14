@@ -24,64 +24,65 @@
         <h2 id="name">ĐANG TẢI...</h2>
         <p>Điểm: <span id="score">0</span></p>
         <p>Trạng thái: <span id="status">...</span></p>
+        
         <button class="btn-checkin" onclick="checkIn()">BẤM ĐIỂM DANH NHANH</button>
-        <input type="text" id="reason" placeholder="Lý do xin nghỉ...">
-        <button class="btn-leave" onclick="guidon()">GỬI ĐƠN XIN NGHỈ</button>
+        
+        <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
+            <input type="text" id="reason-input" placeholder="Lý do xin nghỉ...">
+            <button class="btn-leave" onclick="guiDon()">GỬI ĐƠN XIN NGHỈ</button>
+        </div>
+
         <button class="btn-exit" onclick="window.location.href='index.html'">THOÁT</button>
     </div>
+
     <script>
-        // Lấy ID từ URL (ví dụ student.html?id=HS01)
-const layThamSo = new URLSearchParams(window.location.search);
-const currentID = layThamSo.get('id');
+        // 1. Lấy ID học sinh từ URL
+        const params = new URLSearchParams(window.location.search);
+        const currentID = params.get('id');
 
-// Kiểm tra nếu có ID thì mới tải tên
-if (currentID) {
-    database.ref('users/' + currentID).on('value', (snap) => {
-        const data = snap.val();
-        if (data) {
-            document.getElementById('name').innerText = data.ten;
-            document.getElementById('diem-hien-tai').innerText = data.diem_ren_luyen || 0;
-            document.getElementById('trang-thai-hien-tai').innerText = data.trang_thai || "...";
-        }
-    });
-}
-        var searchParams = new URLSearchParams(window.location.search);
-        var idHocSinh = searchParams.get('id');
-
-        if (idHocSinh && typeof database !== 'undefined') {
-            database.ref('users/' + idHocSinh).on('value', (snap) => {
-                var val = snap.val();
-                if(val) {
-                    document.getElementById('name').innerText = val.ten;
-                    document.getElementById('score').innerText = val.diem_ren_luyen || 0;
-                    document.getElementById('status').innerText = val.trang_thai || "Chưa điểm danh";
+        // 2. Lắng nghe dữ liệu từ Firebase
+        if (currentID && typeof database !== 'undefined') {
+            database.ref('users/' + currentID).on('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    document.getElementById('name').innerText = data.ten;
+                    document.getElementById('score').innerText = data.diem_ren_luyen || 0;
+                    document.getElementById('status').innerText = data.trang_thai || "Chưa điểm danh";
+                } else {
+                    document.getElementById('name').innerText = "KHÔNG TÌM THẤY HS";
                 }
             });
+        } else {
+            alert("Thiếu mã số học sinh trên URL!");
         }
 
+        // 3. Hàm điểm danh nhanh
         function checkIn() {
-            if(!idHocSinh) return alert("Thiếu ID!");
-            var gio = new Date().getHours();
-            var tt = (gio >= 7) ? "Trễ" : "Có mặt";
-            database.ref('users/' + idHocSinh).update({
+            if(!currentID) return;
+            const gio = new Date().getHours();
+            const phut = new Date().getMinutes();
+            // Nếu sau 7h15 thì tính là trễ (Đạt có thể chỉnh lại số này)
+            const tt = (gio > 7 || (gio === 7 && phut > 15)) ? "Trễ" : "Có mặt";
+            
+            database.ref('users/' + currentID).update({
                 trang_thai: tt,
                 gio_diem_danh: new Date().toLocaleTimeString('vi-VN', { hour12: false })
-            }).then(() => alert("Xong!"));
+            }).then(() => alert("Đã điểm danh: " + tt));
         }
 
-       function guiDon() {
-    var lydo = document.getElementById('ly-do-input').value.trim();
-    if(!lydo) return alert("Vui lòng nhập lý do!");
+        // 4. Hàm gửi đơn xin nghỉ
+        function guiDon() {
+            const lydo = document.getElementById('reason-input').value.trim();
+            if(!lydo) return alert("Vui lòng nhập lý do!");
 
-    // Sửa chỗ này: Lưu thẳng vào users/ID thay vì tạo mục xin_nghi riêng
-    database.ref('users/' + currentID).update({
-        ly_do: lydo,
-        trang_thai: "Đang chờ duyệt"
-    }).then(() => {
-        alert("Đã gửi đơn xin nghỉ!");
-        document.getElementById('ly-do-input').value = "";
-    });
-}
+            database.ref('users/' + currentID).update({
+                ly_do: lydo,
+                trang_thai: "Đang chờ duyệt"
+            }).then(() => {
+                alert("Đã gửi đơn xin nghỉ!");
+                document.getElementById('reason-input').value = "";
+            });
+        }
     </script>
 </body>
 </html>
