@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Học Sinh - Smart Attendee</title>
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -23,32 +23,58 @@
             background: rgba(0, 0, 0, 0.75); border-radius: 25px; padding: 25px; 
             text-align: center; width: 90%; max-width: 360px; 
             border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); color: white;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px;
         }
         h2 { margin: 0; font-size: 22px; color: #fff; text-transform: uppercase; }
         h1 { font-size: 60px; margin: 0; color: #55efc4; line-height: 1; }
-        #video { border-radius: 15px; width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border: 2px solid #55efc4; }
-        .status-box { padding: 10px; border-radius: 12px; background: rgba(85, 239, 196, 0.1); color: #55efc4; font-size: 14px; border: 1px solid rgba(85,239,196,0.3); }
-        input { width: 100%; padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.15); color: white; text-align: center; outline: none; }
-        .btn-red { width: 100%; padding: 12px; border-radius: 10px; border: none; background: #ff7675; color: white; font-weight: bold; cursor: pointer; }
+        .score-label { font-size: 10px; opacity: 0.8; margin-top: -5px; letter-spacing: 2px; }
+        
+        .status-box { 
+            padding: 15px; border-radius: 15px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border-left: 5px solid #55efc4; text-align: left;
+        }
+        .status-label { font-size: 12px; color: #55efc4; font-weight: bold; }
+        .status-val { font-size: 14px; margin-top: 5px; color: #fff; }
+
+        input { 
+            width: 100%; padding: 12px; border-radius: 10px; border: none; 
+            background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-green { 
+            width: 100%; padding: 14px; border-radius: 10px; border: none; 
+            background: #55efc4; color: #2d3436; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .btn-red { 
+            width: 100%; padding: 14px; border-radius: 10px; border: none; 
+            background: #ff7675; color: white; font-weight: bold; cursor: pointer; opacity: 0.9;
+        }
+        .btn-red:hover { opacity: 1; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
     <a href="index.html" class="btn-exit">← Thoát</a>
 
-    <div class="glass-card">
-        <h2 id="student-name">ĐANG KẾT NỐI...</h2>
+    <div class="glass-card"><h2 id="student-name">ĐANG KẾT NỐI...</h2>
         <h1 id="student-score">--</h1>
-        <p style="font-size: 10px; opacity: 0.8; margin: 0; letter-spacing: 2px;">ĐIỂM RÈN LUYỆN</p>
+        <div class="score-label">ĐIỂM RÈN LUYỆN</div>
         
-        <video id="video" autoplay muted playsinline></video>
-        <div id="face-status" class="status-box">🔍 Đang nhận diện...</div>
-        
-        <input type="text" id="reason-input" placeholder="Lý do xin nghỉ..."><button class="btn-red" onclick="guiDonXinNghi()">GỬI ĐƠN XIN NGHỈ</button>
+        <div class="status-box">
+            <div class="status-label">TRẠNG THÁI HIỆN TẠI</div>
+            <div id="student-status" class="status-val">Đang cập nhật...</div>
+        </div>
+
+        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn-green" onclick="diemDanh()">BẤM ĐIỂM DANH NHANH</button>
+            <input type="text" id="reason-input" placeholder="Lý do xin nghỉ...">
+            <button class="btn-red" onclick="guiDonXinNghi()">GỬI ĐƠN XIN NGHỈ</button>
+        </div>
     </div>
 
 <script>
+    // Cấu hình Firebase (Giữ nguyên của Đạt)
     const firebaseConfig = {
         apiKey: "AIzaSyBuwC_mqQ0uO-5NSHLIJ5wq11dB-2kIop8",
         authDomain: "quanly-428c3.firebaseapp.com",
@@ -61,61 +87,55 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Tự động lấy HS01 nếu không có ID trên link
     const urlParams = new URLSearchParams(window.location.search);
     const currentID = urlParams.get('id') || 'HS01';
 
-    // Lấy dữ liệu từ users/HS01
+    // 1. Tải dữ liệu và lắng nghe Realtime
     function loadData() {
-        database.ref('users/' + currentID).on('value', snap => {
+        // Lấy từ nhánh 'students' để đồng bộ với Parent/Teacher
+        database.ref('students/' + currentID).on('value', snap => {
             const data = snap.val();
             if (data) {
-                document.getElementById('student-name').innerText = data.ten;
-                document.getElementById('student-score').innerText = data.diem_ren_luyen;
-            } else {
-                document.getElementById('student-name').innerText = "SAI ID: " + currentID;
+                document.getElementById('student-name').innerText = data.ten || "HỌC SINH";
+                document.getElementById('student-score').innerText = data.diem || "0";
+                document.getElementById('student-status').innerText = data.trang_thai || "Ngoại tuyến";
             }
         });
     }
 
-    async function initAI() {
-        const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
-        try {
-            await Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-            ]);
-            const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
-            document.getElementById('video').srcObject = stream;
-            
-            setInterval(async () => {
-                const detections = await faceapi.detectAllFaces('video', new faceapi.TinyFaceDetectorOptions());
-                if (detections.length > 0) {
-                    const status = document.getElementById('face-status');
-                    status.innerText = "✅ ĐÃ ĐIỂM DANH TỰ ĐỘNG";
-                    status.style.background = "rgba(85, 239, 196, 0.3)";
-                }
-            }, 2000);
-        } catch (e) {
-            document.getElementById('face-status').innerText = "⚠️ Đang chờ Camera...";
-        }
+    // 2. Hàm Điểm danh nhanh (Cho Web)
+    function diemDanh() {
+        database.ref('students/' + currentID).update({
+            trang_thai: "Có mặt",
+            thoi_gian_co_mat: new Date().toLocaleTimeString()
+        }).then(() => {
+            alert("Đã điểm danh thành công!");
+        });
     }
 
+    // 3. Gửi đơn xin nghỉ (Đẩy về nhánh xin_nghi để giáo viên duyệt)
     function guiDonXinNghi() {
         const lyDo = document.getElementById('reason-input').value;
         if(!lyDo) return alert("Vui lòng nhập lý do!");
-        database.ref('xin_nghi/' + currentID).set({
-            ten: document.getElementById('student-name').innerText,
+        
+        // Cập nhật trạng thái chờ duyệt cho phụ huynh thấy
+        database.ref('students/' + currentID).update({
+            yeu_cau_nghi: 1,
+            trang_thai: "Chờ duyệt nghỉ"
+        });
+
+        // Ghi vào nhật ký xin nghỉ
+        database.ref('xin_nghi/' + currentID).set({ten: document.getElementById('student-name').innerText,
             ly_do: lyDo,
-            thoi_gian: new Date().toLocaleString()
+            thoi_gian: new Date().toLocaleString(),
+            trang_thai_duyet: "Chờ phụ huynh"
         }).then(() => {
-            alert("Đã gửi đơn thành công!");
+            alert("Đã gửi đơn thành công! Vui lòng chờ phụ huynh xác nhận trên đồng hồ.");
             document.getElementById('reason-input').value = "";
         });
     }
 
     loadData();
-    initAI();
 </script>
 </body>
 </html>
