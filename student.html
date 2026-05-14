@@ -5,7 +5,7 @@
     <title>Học Sinh - Smart Attendee</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- Đạt kiểm tra kỹ tên file này trong thư mục có đúng là firebase.config.js không nhé -->
+    <!-- Đạt nhớ kiểm tra xem file này trên GitHub tên là firebase.config.js hay firebase-config.js nhé -->
     <script src="firebase.config.js"></script>
     <style>
         body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center;
@@ -35,14 +35,13 @@
     </div>
 
     <script>
-        // Lấy mã HS từ URL
+        // CHỈ KHAI BÁO MỘT LẦN DUY NHẤT Ở ĐÂY
         const urlParams = new URLSearchParams(window.location.search);
         const currentID = urlParams.get('id');
 
         if (!currentID) {
-            alert("Lỗi: Không tìm thấy ID học sinh!");
+            alert("Lỗi: Không tìm thấy ID học sinh trên link!");
         } else {
-            // Lắng nghe dữ liệu
             database.ref('users/' + currentID).on('value', (snap) => {
                 const data = snap.val();
                 if(data) {
@@ -54,7 +53,7 @@
         }
 
         function checkIn() {
-            if(!currentID) return;
+            if(!currentID) return alert("Không có ID!");
             const now = new Date();
             let tinhTrang = (now.getHours() >= 7) ? "Trễ" : "Có mặt";
 
