@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng Điều Khiển Giáo Viên - Full</title>
+    <title>Bảng Điều Khiển Giáo Viên - Smart Attendee</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -14,7 +14,6 @@
             background-size: cover; font-family: 'Segoe UI', sans-serif;
             display: flex; flex-direction: column; align-items: center;
         }
-        /* CSS Nút thoát chuẩn */
         .btn-back {
             position: absolute; top: 20px; left: 20px; z-index: 1000;
             background: rgba(0, 0, 0, 0.6); color: white; text-decoration: none;
@@ -32,7 +31,7 @@
         .section-title { font-size: 18px; font-weight: bold; margin: 25px 0 15px; border-left: 4px solid #55efc4; padding-left: 10px; color: #55efc4; }
         
         .add-box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; border: 1px dashed rgba(255,255,255,0.3); margin-bottom: 20px; }
-        .add-box input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; }
+        .add-box input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; color: #333; }
         .btn-add { width: 100%; padding: 12px; background: #55efc4; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         .card {
@@ -41,13 +40,22 @@
             justify-content: space-between; align-items: center;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        .score-controls button { padding: 5px 15px; margin-left: 5px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .score-controls { display: flex; align-items: center; gap: 8px; }
+        .score-controls button { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; }
         .btn-up { background: #55efc4; color: #000; }
         .btn-down { background: #ff7675; color: white; }
-        .absent-card { background: rgba(255, 118, 117, 0.15); border: 1px solid rgba(255, 118, 117, 0.3); border-radius: 15px; padding: 15px; margin-bottom: 10px; }
+        
+        .absent-card { 
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 15px; padding: 15px; margin-bottom: 10px; 
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .btn-delete-note { background: none; border: 1px solid #ff7675; color: #ff7675; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 11px; }
+        .btn-delete-note:hover { background: #ff7675; color: white; }
     </style>
 </head>
-<body><a href="index.html" class="btn-back">← Thoát</a>
+<body>
+    <a href="index.html" class="btn-back">← Thoát</a>
 
     <div class="container">
         <h2>GIÁO VIÊN QUẢN LÝ</h2>
@@ -59,66 +67,67 @@
             <button class="btn-add" onclick="createNewStudent()">TẠO TÀI KHOẢN</button>
         </div>
         
-        <div class="section-title">📊 QUẢN LÝ ĐIỂM (USERS)</div>
-        <div id="student-list">Đang tải danh sách...</div>
+        <div class="section-title">📊 DANH SÁCH LỚP (REALTIME)</div>
+        <div id="student-list">Đang kết nối dữ liệu...</div>
 
-        <div class="section-title">🚩 DANH SÁCH XIN NGHỈ</div>
+        <div class="section-title">🚩 ĐƠN XIN NGHỈ (CHƯA XEM)</div>
         <div id="absent-list">Chưa có ai xin nghỉ.</div>
     </div>
 
+<script src="firebase.config.js"></script> <!-- Đảm bảo file này chứa API Key của bạn -->
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBuwC_mqQ0uO-5NSHLIJ5wq11dB-2kIop8",
-        authDomain: "quanly-428c3.firebaseapp.com",
-        databaseURL: "https://quanly-428c3-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "quanly-428c3",
-        storageBucket: "quanly-428c3.firebasestorage.app",
-        messagingSenderId: "1061659403130",
-        appId: "1:1061659403130:web:1a2a23280ae1de0d3ecc3"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // HÀM KIỂM TRA ĐI TRỄ
-    function checkLate(timeStr) {
-        if (!timeStr || timeStr === "") return "";
-        const parts = timeStr.split(':');
-        const hour = parseInt(parts[0]);
-        const minute = parseInt(parts[1]);
-        if (hour > 6 || (hour === 6 && minute > 55)) {
-            return '<span style="background:#ffeaa7; color:#d63031; padding:2px 5px; border-radius:5px; font-size:10px; margin-left:5px; border:1px solid #fab1a0; font-weight:bold;">TRỄ</span>';
-        }
-        return '<span style="background:#55efc4; color:#000; padding:2px 5px; border-radius:5px; font-size:10px; margin-left:5px; font-weight:bold;">ĐÚNG GIỜ</span>';
-    }
-
-    // TẠO TÀI KHOẢN MỚI
+    // 1. TẠO TÀI KHOẢN MỚI
     function createNewStudent() {
         const id = document.getElementById('new-id').value.trim().toUpperCase();
         const name = document.getElementById('new-name').value.trim();
         if (!id || !name) return alert("Nhập đủ Mã số và Tên!");
-        database.ref('users/' + id).set({ ten: name, diem_ren_luyen: 100, id: id })
-        .then(() => { alert("Thành công!"); document.getElementById('new-id').value = ""; document.getElementById('new-name').value = ""; });
+        
+        database.ref('users/' + id).set({ 
+            ten: name, 
+            diem_ren_luyen: 100, 
+            id: id,
+            trang_thai: "Đang ở lớp"
+        })
+        .then(() => { 
+            alert("Đã tạo tài khoản cho " + name); 
+            document.getElementById('new-id').value = ""; 
+            document.getElementById('new-name').value = ""; 
+        });
     }
 
-    // TẢI DANH SÁCH HỌC SINH
+    // 2. TẢI DANH SÁCH HỌC SINH
     database.ref('users').on('value', (snap) => {
         const container = document.getElementById('student-list');
         container.innerHTML = "";
         snap.forEach((child) => {
             const id = child.key;
             const data = child.val();
-            const lateStatus = checkLate(data.gio_diem_danh);
+            
+            // Logic kiểm tra đi trễ (6:55)
+            let lateBadge = "";
+            if(data.gio_diem_danh) {
+                const parts = data.gio_diem_danh.split(':');
+                const h = parseInt(parts[0]);
+                const m = parseInt(parts[1]);
+                if(h > 6 || (h === 6 && m > 55)) {
+                    lateBadge = `<span style="color:#ff7675; font-size:10px; font-weight:bold;">[TRỄ]</span>`;
+                }
+            }
+
             const div = document.createElement('div');
-            div.className = 'card';div.innerHTML = `
+            div.className = 'card';
+            div.innerHTML = `
                 <div>
-                    <strong>${data.ten}</strong> ${lateStatus}<br>
-                    <small style="opacity:0.8">ID: ${id} | Điểm: <span id="score-${id}">${data.diem_ren_luyen}</span></small>
-                    <div style="font-size:10px; color:#55efc4; margin-top:2px;">🕒 Lúc: ${data.gio_diem_danh || '--:--'}</div>
+                    <strong style="color:#55efc4">${data.ten}</strong> ${lateBadge}<br>
+                    <small style="opacity:0.7">ID: ${id} | Trạng thái: <b>${data.trang_thai || '---'}</b></small>
+                    <div style="font-size:11px; margin-top:3px; opacity:0.8">
+                        ⭐ Điểm: <span id="score-${id}">${data.diem_ren_luyen || 0}</span> | 🕒 Lúc: ${data.gio_diem_danh || '--:--'}
+                    </div>
                 </div>
                 <div class="score-controls">
                     <button class="btn-up" onclick="changeScore('${id}', 1)">+</button>
                     <button class="btn-down" onclick="changeScore('${id}', -1)">-</button>
-                    <button style="background:none; border:none; color:#ff7675; cursor:pointer; font-size:12px;" onclick="deleteStudent('${id}')">🗑️</button>
+                    <button style="background:none; border:none; color:#ff7675; cursor:pointer;" onclick="deleteStudent('${id}')">🗑️</button>
                 </div>
             `;
             container.appendChild(div);
@@ -130,22 +139,35 @@
     }
 
     function deleteStudent(id) {
-        if(confirm("Xóa học sinh này?")) database.ref('users/' + id).remove();
+        if(confirm("Xóa vĩnh viễn học sinh này khỏi hệ thống?")) database.ref('users/' + id).remove();
     }
 
-    // DANH SÁCH XIN NGHỈ
+    // 3. QUẢN LÝ ĐƠN XIN NGHỈ (Có nút xóa đơn)
     database.ref('xin_nghi').on('value', (snap) => {
         const container = document.getElementById('absent-list');
         container.innerHTML = "";
-        if (!snap.exists()) { container.innerHTML = "Chưa có ai xin nghỉ."; return; }
+        if (!snap.exists()) { container.innerHTML = "<div style='opacity:0.5; font-size:13px;'>Chưa có đơn mới.</div>"; return; }
+        
         snap.forEach((child) => {
             const data = child.val();
+            const idDon = child.key;
             const div = document.createElement('div');
             div.className = 'absent-card';
-            div.innerHTML = `<div style="font-weight:bold; color:#ff7675;">🚩 ${data.ten}</div><div>Lý do: ${data.ly_do}</div><div style="font-size:10px; opacity:0.6;">${data.thoi_gian}</div>`;
+            div.innerHTML = `
+                <div style="flex:1">
+                    <div style="font-weight:bold; color:#ff7675;">🚩 ${data.ten}</div>
+                    <div style="font-size:13px; margin:5px 0;">Lý do: ${data.ly_do}</div>
+                    <div style="font-size:10px; opacity:0.5;">Gửi lúc: ${data.thoi_gian}</div>
+                </div>
+                <button class="btn-delete-note" onclick="deleteNote('${idDon}')">ĐÃ XEM</button>
+            `;
             container.appendChild(div);
         });
     });
+
+    function deleteNote(id) {
+        database.ref('xin_nghi/' + id).remove();
+    }
 </script>
 </body>
 </html>
