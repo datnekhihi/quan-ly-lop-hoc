@@ -2,122 +2,95 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Giáo Viên - Smart Attendee Control</title>
+    <title>Giáo Viên - Smart Attendee</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="/quan-ly-lop-hoc/firebase.config.js"></script>
+    <script src="firebase.config.js"></script>
     <style>
-        body { margin: 0; min-height: 100vh; background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .glass-panel { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; color: white; width: 90%; max-width: 800px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
-        h2 { color: #55efc4; text-align: center; margin-top: 0; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: none; min-width: 150px; color: #000; }
-        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-add { background: #55efc4; color: #000; }
-        .btn-add:hover { background: #00b894; }
-        .btn-exit { background: #636e72; color: #fff; margin-left: auto; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; border-bottom: 2px solid #55efc4; padding: 10px; color: #55efc4; }
-        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .status-tag { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .tag-present { background: #55efc4; color: #000; }
-        .tag-absent { background: #ff7675; color: #fff; }
-        .tag-late { background: #fdcb6e; color: #000; }
-        
-        .action-btn { background: none; border: 1px solid #55efc4; color: #55efc4; padding: 5px 10px; font-size: 12px; margin-right: 5px; }
-        .action-btn:hover { background: #55efc4; color: #000; }
+        body { margin: 0; min-height: 100vh; background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: sans-serif; color: white; padding: 20px; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .card { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); width: 300px; }
+        .list-card { flex: 1; min-width: 400px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { width: 100%; padding: 12px; background: #55efc4; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #444; font-size: 14px; }
+        .btn-del { background: #ff7675; padding: 5px; font-size: 10px; width: auto; }
+        .status-online { color: #55efc4; }
+        .status-late { color: #ffeaa7; }
     </style>
 </head>
 <body>
-
-    <div class="glass-panel">
-        <div style="display: flex; align-items: center;">
-            <h2>QUẢN LÝ LỚP HỌC</h2>
-            <button class="btn-exit" onclick="window.location.href='index.html'">THOÁT</button>
+    <div class="container">
+        <div class="card">
+            <h3>QUẢN LÝ LỚP HỌC</h3>
+            <input type="text" id="hs_id" placeholder="Mã số (Ví dụ: HS01)">
+            <input type="text" id="hs_name" placeholder="Họ và tên">
+            <button onclick="themHocSinh()">TẠO TÀI KHOẢN</button>
+            <button style="margin-top:10px; background:#636e72; color:#fff" onclick="window.location.href='index.html'">THOÁT</button>
         </div>
-        
-        <div class="input-group">
-            <input type="text" id="hs-id" placeholder="Mã HS (ví dụ: HS01)">
-            <input type="text" id="hs-ten" placeholder="Họ và tên học sinh">
-            <button class="btn-add" onclick="themHocSinh()">TẠO TÀI KHOẢN</button>
-        </div>
-    </div>
 
-    <div class="glass-panel">
-        <h3>DANH SÁCH HỌC SINH</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Mã số</th>
-                    <th>Họ và tên</th>
-                    <th>Trạng thái</th>
-                    <th>Điểm RL</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody id="student-list"></tbody>
-        </table>
+        <div class="card list-card">
+            <h3>DANH SÁCH HỌC SINH</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã số</th>
+                        <th>Họ và tên</th>
+                        <th>Trạng thái</th>
+                        <th>Điểm RL</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="student-list"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // 1. Hàm thêm học sinh mới
-    function themHocSinh() {
-        const id = document.getElementById('hs-id').value.trim();
-        const ten = document.getElementById('hs-ten').value.trim();
-        
-        if(!id || !ten) return alert("Vui lòng nhập đầy đủ thông tin!");
-
-        database.ref('users/' + id).set({
-            ten: ten,
-            trang_thai: "Chưa điểm danh",
-            diem_ren_luyen: 0,
-            gio_diem_danh: "--"
-        }).then(() => {
-            alert("Đã thêm học sinh " + ten);
-            document.getElementById('hs-id').value = "";
-            document.getElementById('hs-ten').value = "";
-        });
-    }
-
-    // 2. Lắng nghe dữ liệu hiển thị danh sách
-    database.ref('users').on('value', (snapshot) => {
-        const list = document.getElementById('student-list');
-        list.innerHTML = ""; 
-        
-        snapshot.forEach((child) => {
-            const id = child.key;
-            const data = child.val();
+        // Hàm thêm học sinh - Đây là hàm bị thiếu trong ảnh của Đạt
+        function themHocSinh() {
+            var id = document.getElementById('hs_id').value.trim();
+            var ten = document.getElementById('hs_name').value.trim();
             
-            const tr = document.createElement('tr');
-            let tagClass = data.trang_thai === 'Có mặt' ? 'tag-present' : (data.trang_thai === 'Trễ' ? 'tag-late' : 'tag-absent');
+            if(!id || !ten) return alert("Vui lòng nhập đủ thông tin!");
 
-            tr.innerHTML = `
-                <td><b>${id}</b></td>
-                <td>${data.ten}</td>
-                <td><span class="status-tag ${tagClass}">${data.trang_thai}</span></td>
-                <td>${data.diem_ren_luyen || 0}</td>
-                <td>
-                    <button class="action-btn" onclick="congDiem('${id}', ${data.diem_ren_luyen || 0})">+ Điểm</button>
-                    <button class="action-btn" onclick="truDiem('${id}', ${data.diem_ren_luyen || 0})">- Điểm</button>
-                    <button class="action-btn" style="border-color: #ff7675; color: #ff7675;" onclick="xoaHocSinh('${id}')">Xóa</button>
-                </td>
-            `;
-            list.appendChild(tr);
-        });
-    });
-
-    // 3. Các hàm bổ trợ
-    function congDiem(id, diemHT) {
-        database.ref('users/' + id).update({ diem_ren_luyen: diemHT + 1 });
-    }
-
-    function truDiem(id, diemHT) {
-        database.ref('users/' + id).update({ diem_ren_luyen: diemHT - 1 });
-    }
-
-    function xoaHocSinh(id) {
-        if(confirm("Bạn có chắc muốn xóa học sinh này?")) {
-            database.ref('users/' + id).remove();
+            database.ref('users/' + id).set({
+                ten: ten,
+                diem_ren_luyen: 100,
+                trang_thai: "Chưa điểm danh"
+            }).then(() => {
+                alert("Đã thêm học sinh " + ten);
+                document.getElementById('hs_id').value = "";
+                document.getElementById('hs_name').value = "";
+            });
         }
-    }
+
+        // Tự động tải danh sách
+        database.ref('users').on('value', (snap) => {
+            var list = document.getElementById('student-list');
+            list.innerHTML = "";
+            snap.forEach((child) => {
+                var s = child.val();
+                var key = child.key;
+                if(key.startsWith('HS')) { // Chỉ hiện học sinh
+                    var row = `<tr>
+                        <td>${key}</td>
+                        <td>${s.ten}</td>
+                        <td>${s.trang_thai}</td>
+                        <td>${s.diem_ren_luyen || 0}</td>
+                        <td><button class="btn-del" onclick="xoaHS('${key}')">XÓA</button></td>
+                    </tr>`;
+                    list.innerHTML += row;
+                }
+            });
+        });
+
+        function xoaHS(id) {
+            if(confirm("Xóa học sinh này?")) {
+                database.ref('users/' + id).remove();
+            }
+        }
+    </script>
+</body>
+</html>
