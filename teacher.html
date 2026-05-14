@@ -71,6 +71,11 @@
             var list = document.getElementById('student-list');
             list.innerHTML = "";
             snap.forEach((child) => {
+                <!-- Thêm vào bên cạnh chỗ hiển thị điểm trong teacher.html -->
+<div class="score-control">
+    <button onclick="changeScore('HS01', 1)" style="color: green;">+1 Điểm</button>
+    <button onclick="changeScore('HS01', -1)" style="color: red;">-1 Điểm</button>
+</div>
                 var s = child.val();
                 var key = child.key;
                 if(key.startsWith('HS')) { // Chỉ hiện học sinh
