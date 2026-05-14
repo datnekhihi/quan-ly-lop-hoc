@@ -2,35 +2,70 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phụ Huynh - Smart Attendee</title>
+    <!-- Nhúng Firebase Legacy SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { background: #0984e3; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; color: black; padding: 25px; border-radius: 20px; width: 300px; text-align: center; }
-        .status-badge { background: #fdcb6e; padding: 10px; border-radius: 10px; display: block; margin-top: 10px; }
+        body {
+            margin: 0; padding: 0; min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed;
+            background-size: cover; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .glass-card {
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 30px;
+            padding: 40px; width: 90%; max-width: 400px;
+            text-align: center; color: white; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        .profile-img { width: 80px; height: 80px; background: #55efc4; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #000; }
+        h2 { margin: 10px 0; letter-spacing: 1px; color: #55efc4; text-transform: uppercase; }
+        .score-box { font-size: 48px; font-weight: bold; margin: 15px 0; color: #fff; }
+        .status-pill {
+            background: rgba(255, 255, 255, 0.1); border-radius: 15px;
+            padding: 15px; margin: 20px 0; border: 1px solid rgba(85, 239, 196, 0.3);
+        }
+        .status-text { display: block; font-size: 18px; font-weight: bold; color: #55efc4; margin-top: 5px; }
+        .footer-info { font-size: 12px; opacity: 0.6; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h3>GIÁM SÁT HỌC SINH</h3>
-        <h2 id="p-ten">...</h2>
-        <p>Điểm hiện tại: <b id="p-diem">0</b></p>
-        <div class="status-badge">
-            Trạng thái: <br><b id="p-status">...</b>
+
+    <div class="glass-card">
+        <div class="profile-img">🎓</div>
+        <p style="margin-bottom: 5px; opacity: 0.8;">PHỤ HUYNH THEO DÕI</p>
+        <h2 id="p-ten">ĐANG TẢI...</h2>
+        
+        <div class="score-box" id="p-diem">--</div>
+        <p style="font-size: 14px; margin-top: -10px; opacity: 0.7;">ĐIỂM RÈN LUYỆN</p>
+
+        <div class="status-pill">
+            <span style="font-size: 13px; opacity: 0.8;">TRẠNG THÁI HIỆN TẠI</span>
+            <span class="status-text" id="p-status">Đang cập nhật...</span>
         </div>
-        <p style="font-size: 12px; color: gray; margin-top: 20px;">Lần điểm danh cuối: <span id="p-gio">--</span></p>
+
+        <div class="footer-info">
+            Cập nhật cuối: <span id="p-gio">--:--</span><br>
+            Hệ thống Smart Attendee v2.0
+        </div>
     </div>
 
+    <!-- Gọi file cấu hình bạn đã tạo -->
     <script src="firebase-config.js"></script>
     <script>
-        database.ref('users/' + currentID).on('value', snap => {
-            const d = snap.val();
-            if(d) {
-                document.getElementById('p-ten').innerText = d.ten;
-                document.getElementById('p-diem').innerText = d.diem_ren_luyen;
-                document.getElementById('p-status').innerText = d.trang_thai;
-                document.getElementById('p-gio').innerText = d.gio_diem_danh || "Chưa có";
+        // Lấy thông tin từ nhánh users mới
+        database.ref('users/' + currentID).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('p-ten').innerText = data.ten || "Không rõ tên";
+                document.getElementById('p-diem').innerText = data.diem_ren_luyen || 0;
+                document.getElementById('p-status').innerText = data.trang_thai || "Ngoại tuyến";
+                document.getElementById('p-gio').innerText = data.gio_diem_danh || "Chưa có dữ liệu";
+            } else {
+                document.getElementById('p-ten').innerText = "SAI ID HỌC SINH";
+                document.getElementById('p-status').innerText = "Vui lòng kiểm tra lại URL";
             }
         });
     </script>
