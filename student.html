@@ -5,17 +5,16 @@
     <title>Học Sinh - Smart Attendee</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- Sửa lỗi 404: Đảm bảo tên file này đúng với file trên GitHub của bạn -->
+    <!-- Đạt kiểm tra kỹ tên file này trong thư mục có đúng là firebase.config.js không nhé -->
     <script src="firebase.config.js"></script>
     <style>
         body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center;
                background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: sans-serif; }
         .glass-card { background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; 
-                      color: white; text-align: center; width: 350px; border: 1px solid rgba(255,255,255,0.1); position: relative; }
+                      color: white; text-align: center; width: 350px; border: 1px solid rgba(255,255,255,0.1); }
         h2#name { color: #55efc4; text-transform: uppercase; margin: 10px 0; }
-        button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button { width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-checkin { background: #55efc4; color: #000; }
-        .btn-checkin:hover { background: #00b894; }
         .btn-leave { background: #ff7675; color: #fff; }
         .btn-exit { background: #636e72; color: #fff; margin-top: 20px; font-size: 12px; width: auto; padding: 5px 15px; }
         input { width: 90%; padding: 10px; border-radius: 5px; border: none; margin: 5px 0; color: #000; }
@@ -36,59 +35,49 @@
     </div>
 
     <script>
-        // Lấy mã HS từ URL (ví dụ: student.html?id=HS01)
+        // Lấy mã HS từ URL
         const urlParams = new URLSearchParams(window.location.search);
         const currentID = urlParams.get('id');
 
         if (!currentID) {
-            alert("Không tìm thấy mã học sinh! Vui lòng quay lại trang đăng nhập.");
-            window.location.href = 'index.html';
+            alert("Lỗi: Không tìm thấy ID học sinh!");
+        } else {
+            // Lắng nghe dữ liệu
+            database.ref('users/' + currentID).on('value', (snap) => {
+                const data = snap.val();
+                if(data) {
+                    document.getElementById('name').innerText = data.ten;
+                    document.getElementById('score').innerText = data.diem_ren_luyen || 0;
+                    document.getElementById('status').innerText = data.trang_thai || "Chưa điểm danh";
+                }
+            });
         }
 
-        // Lấy dữ liệu học sinh từ Firebase
-        database.ref('users/' + currentID).on('value', (snap) => {
-            const data = snap.val();
-            if(data) {
-                document.getElementById('name').innerText = data.ten;
-                document.getElementById('score').innerText = data.diem_ren_luyen || 0;
-                document.getElementById('status').innerText = data.trang_thai || "Chưa điểm danh";
-            } else {
-                document.getElementById('name').innerText = "KHÔNG TỒN TẠI";
-            }
-        });
-
         function checkIn() {
+            if(!currentID) return;
             const now = new Date();
-            const currentHour = now.getHours();
-            
-            // Logic: Điểm danh từ 7h trở đi là trễ
-            let tinhTrang = "Có mặt";
-            if (currentHour >= 7) {
-                tinhTrang = "Trễ";
-            }
+            let tinhTrang = (now.getHours() >= 7) ? "Trễ" : "Có mặt";
 
             database.ref('users/' + currentID).update({
                 trang_thai: tinhTrang,
                 gio_diem_danh: now.toLocaleTimeString('vi-VN', { hour12: false })
             }).then(() => {
-                alert("Điểm danh thành công! Trạng thái: " + tinhTrang);
+                alert("Đã điểm danh: " + tinhTrang);
             });
         }
 
         function xinNghi() {
+            if(!currentID) return;
             const r = document.getElementById('reason').value.trim();
-            if(!r) return alert("Vui lòng nhập lý do!");
-            
-            const tenHS = document.getElementById('name').innerText;
+            if(!r) return alert("Nhập lý do!");
             
             database.ref('xin_nghi/' + currentID).set({
-                ten: tenHS,
+                ten: document.getElementById('name').innerText,
                 ly_do: r,
                 thoi_gian: new Date().toLocaleString()
             }).then(() => {
                 database.ref('users/' + currentID).update({ trang_thai: "Xin nghỉ" });
-                alert("Đã gửi đơn xin nghỉ!");
-                document.getElementById('reason').value = "";
+                alert("Đã gửi đơn!");
             });
         }
     </script>
