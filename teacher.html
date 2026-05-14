@@ -96,6 +96,22 @@
                 database.ref('users/' + id).remove();
             }
         }
+        function changeScore(idHS, amount) {
+    const studentRef = database.ref('users/' + idHS + '/diem_ren_luyen');
+    
+    // Lấy điểm hiện tại rồi mới cộng/trừ
+    studentRef.once('value').then((snapshot) => {
+        let currentScore = snapshot.val() || 0;
+        let newScore = currentScore + amount;
+        
+        // Cập nhật lại lên Firebase
+        studentRef.set(newScore).then(() => {
+            console.log("Đã cập nhật điểm cho " + idHS);
+        }).catch((error) => {
+            alert("Lỗi: " + error.message);
+        });
+    });
+}
     </script>
 </body>
 </html>
