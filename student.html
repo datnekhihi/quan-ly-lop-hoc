@@ -45,11 +45,25 @@
         });
 
         function checkIn() {
-            database.ref('users/' + currentID).update({
-                trang_thai: "Có mặt",
-                gio_diem_danh: new Date().toLocaleTimeString()
-            });
-            alert("Điểm danh thành công!");
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Mặc định là Có mặt
+    let tinhTrang = "Có mặt";
+    
+    // Nếu giờ >= 7 (từ 7h00 trở đi là trễ)
+    if (currentHour >= 7) {
+        tinhTrang = "Trễ";
+    }
+
+    database.ref('users/' + currentID).update({
+        trang_thai: tinhTrang,
+        gio_diem_danh: now.toLocaleTimeString('vi-VN', { hour12: false })
+    }).then(() => {
+        alert("Điểm danh thành công! Trạng thái: " + tinhTrang);
+    });
+}
         }
 
         function xinNghi() {
