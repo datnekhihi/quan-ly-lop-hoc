@@ -54,13 +54,14 @@
             }).then(() => alert("Xong!"));
         }
 
-        function guiDon() {
+       function guiDon() {
     var lydo = document.getElementById('ly-do-input').value.trim();
     if(!lydo) return alert("Vui lòng nhập lý do!");
 
+    // Sửa chỗ này: Lưu thẳng vào users/ID thay vì tạo mục xin_nghi riêng
     database.ref('users/' + currentID).update({
         ly_do: lydo,
-        trang_thai: "Đang chờ duyệt" // Đổi trạng thái ngay khi gửi
+        trang_thai: "Đang chờ duyệt"
     }).then(() => {
         alert("Đã gửi đơn xin nghỉ!");
         document.getElementById('ly-do-input').value = "";
