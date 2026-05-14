@@ -26,7 +26,7 @@
         <p>Trạng thái: <span id="status">...</span></p>
         <button class="btn-checkin" onclick="checkIn()">BẤM ĐIỂM DANH NHANH</button>
         <input type="text" id="reason" placeholder="Lý do xin nghỉ...">
-        <button class="btn-leave" onclick="xinNghi()">GỬI ĐƠN XIN NGHỈ</button>
+        <button class="btn-leave" onclick="guidon()">GỬI ĐƠN XIN NGHỈ</button>
         <button class="btn-exit" onclick="window.location.href='index.html'">THOÁT</button>
     </div>
     <script>
@@ -54,18 +54,18 @@
             }).then(() => alert("Xong!"));
         }
 
-        function xinNghi() {
-            var r = document.getElementById('reason').value.trim();
-            if(!r) return alert("Nhập lý do!");
-            database.ref('xin_nghi/' + idHocSinh).set({
-                ten: document.getElementById('name').innerText,
-                ly_do: r,
-                thoi_gian: new Date().toLocaleString()
-            }).then(() => {
-                database.ref('users/' + idHocSinh).update({ trang_thai: "Xin nghỉ" });
-                alert("Đã gửi đơn!");
-            });
-        }
+        function guiDon() {
+    var lydo = document.getElementById('ly-do-input').value.trim();
+    if(!lydo) return alert("Vui lòng nhập lý do!");
+
+    database.ref('users/' + currentID).update({
+        ly_do: lydo,
+        trang_thai: "Đang chờ duyệt" // Đổi trạng thái ngay khi gửi
+    }).then(() => {
+        alert("Đã gửi đơn xin nghỉ!");
+        document.getElementById('ly-do-input').value = "";
+    });
+}
     </script>
 </body>
 </html>
