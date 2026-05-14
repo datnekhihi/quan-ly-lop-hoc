@@ -2,94 +2,69 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Học Sinh - Smart Attendee</title>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; 
-            background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; 
-            background-size: cover; font-family: 'Segoe UI', sans-serif; overflow: hidden; position: relative;
-        }
-        .btn-exit { 
-            position: absolute; top: 15px; left: 15px; color: white; text-decoration: none; 
-            background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 10px; 
-            font-size: 14px; z-index: 1000; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);
-        }
-        .glass-card { 
-            background: rgba(0, 0, 0, 0.75); border-radius: 25px; padding: 25px; 
-            text-align: center; width: 90%; max-width: 360px; 
-            border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); color: white;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px;
-        }
-        h2 { margin: 0; font-size: 22px; color: #fff; text-transform: uppercase; }
-        h1 { font-size: 60px; margin: 0; color: #55efc4; line-height: 1; }
-        .score-label { font-size: 10px; opacity: 0.8; margin-top: -5px; letter-spacing: 2px; }
-        
-        .status-box { 
-            padding: 15px; border-radius: 15px; 
-            background: rgba(255, 255, 255, 0.05); 
-            border-left: 5px solid #55efc4; text-align: left;
-        }
-        .status-label { font-size: 12px; color: #55efc4; font-weight: bold; }
-        .status-val { font-size: 14px; margin-top: 5px; color: #fff; }
-
-        input { 
-            width: 100%; padding: 12px; border-radius: 10px; border: none; 
-            background: rgba(255,255,255,0.1); color: white; text-align: center; outline: none; 
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .btn-green { 
-            width: 100%; padding: 14px; border-radius: 10px; border: none; 
-            background: #55efc4; color: #2d3436; font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .btn-green:hover { background: #45d6af; transform: scale(1.02); }
-        .btn-red { 
-            width: 100%; padding: 14px; border-radius: 10px; border: none; 
-            background: #ff7675; color: white; font-weight: bold; cursor: pointer; opacity: 0.9;
-        }
-        .btn-red:hover { opacity: 1; transform: translateY(-2px); }
+        body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: sans-serif; color: white; }
+        .glass-card { background: rgba(0,0,0,0.8); padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 350px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        h1 { color: #55efc4; font-size: 50px; margin: 10px 0; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; }
+        button { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-check { background: #55efc4; color: #000; }
+        .btn-absent { background: #ff7675; color: #fff; }
     </style>
 </head>
 <body>
-
-    <a href="index.html" class="btn-exit">← Thoát</a>
-
     <div class="glass-card">
-        <h2 id="student-name">ĐANG KẾT NỐI...</h2>
-        <h1 id="student-score">--</h1>
-        <div class="score-label">ĐIỂM RÈN LUYỆN</div>
-        
-        <div class="status-box">
-            <div class="status-label">TRẠNG THÁI HIỆN TẠI</div>
-            <div id="p-student-status" class="status-val">Đang cập nhật...</div>
+        <h2 id="st-name">ĐANG TẢI...</h2>
+        <h1 id="st-score">--</h1>
+        <p>ĐIỂM RÈN LUYỆN</p>
+        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px;">
+            Trạng thái: <b id="st-status">...</b>
         </div>
-
-        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
-            <!-- Đổi tên hàm thành baoDanh() để khớp với script.js -->
-            <button class="btn-green" onclick="baoDanh()">BẤM ĐIỂM DANH NHANH</button>
-            <input type="text" id="reason-input" placeholder="Lý do xin nghỉ...">
-            <!-- Đổi tên hàm thành xinNghi() để khớp với script.js -->
-            <button class="btn-red" onclick="xinNghi()">GỬI ĐƠN XIN NGHỈ</button>
-        </div>
+        <button class="btn-check" onclick="diemDanh()">BẤM ĐIỂM DANH NHANH</button>
+        <hr>
+        <input type="text" id="ly-do" placeholder="Lý do xin nghỉ...">
+        <button class="btn-absent" onclick="guiDon()">GỬI ĐƠN XIN NGHỈ</button>
     </div>
 
-    <!-- Nhúng cấu hình và script tổng -->
-    <script src="firebase.config.js"></script>
-    <script src="script.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
-        // Bổ sung logic hiển thị trạng thái riêng cho trang học sinh 
-        // vì trong script.js bạn dùng ID 'p-student-status' cho Phụ huynh
-        database.ref('users/' + currentID).on('value', (snap) => {
-            const data = snap.val();
-            if (data) {
-                const statusText = (data.trang_thai || "Đang ở lớp") + (data.ly_do_nghi ? " (" + data.ly_do_nghi + ")" : "");
-                document.getElementById('p-student-status').innerText = statusText;
+        // Lắng nghe dữ liệu realtime
+        database.ref('users/' + currentID).on('value', snap => {
+            const d = snap.val();
+            if(d) {
+                document.getElementById('st-name').innerText = d.ten;
+                document.getElementById('st-score').innerText = d.diem_ren_luyen || 0;
+                document.getElementById('st-status').innerText = d.trang_thai || "Ngoại tuyến";
             }
         });
+
+        function diemDanh() {
+            const gio = new Date().getHours() + ":" + new Date().getMinutes();
+            database.ref('users/' + currentID).update({
+                trang_thai: "Đã có mặt",
+                gio_diem_danh: gio
+            }).then(() => alert("Điểm danh thành công lúc " + gio));
+        }
+
+        function guiDon() {
+            const reason = document.getElementById('ly-do').value;
+            if(!reason) return alert("Vui lòng nhập lý do");
+            const ten = document.getElementById('st-name').innerText;
+            
+            // Đẩy vào nhánh xin_nghi cho giáo viên xem
+            database.ref('xin_nghi/' + currentID).set({
+                ten: ten,
+                ly_do: reason,
+                thoi_gian: new Date().toLocaleString()
+            });
+            // Cập nhật trạng thái chờ
+            database.ref('users/' + currentID).update({ trang_thai: "Đang xin nghỉ..." });
+            alert("Đã gửi đơn!");
+        }
     </script>
 </body>
 </html>
