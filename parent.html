@@ -2,86 +2,69 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cổng Phụ Huynh - Smart Attendee</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Sinh - Smart Attendee</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { 
-            margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; 
-            background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; 
-            background-size: cover; font-family: 'Segoe UI', sans-serif; color: white; 
-        }
-        .glass-card { 
-            background: rgba(0, 0, 0, 0.7); border-radius: 30px; padding: 35px; text-align: center; 
-            width: 90%; max-width: 360px; border: 1px solid rgba(255,255,255,0.2); 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6); backdrop-filter: blur(15px); 
-        }
-        h2 { letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; font-size: 18px; color: #fff; opacity: 0.9; }
-        
-        .info-name { font-size: 24px; margin-bottom: 5px; font-weight: bold; color: #55efc4; }
-        .info-id { font-size: 12px; opacity: 0.6; margin-bottom: 20px; letter-spacing: 1px; }
-
-        .btn-score { 
-            width: 100%; padding: 15px; border-radius: 15px; border: none; background: #f1c40f; 
-            color: #2d3436; font-weight: bold; margin-bottom: 20px; font-size: 18px; 
-            box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); 
-        }
-
-        .status-box { 
-            background: rgba(255, 255, 255, 0.08); padding: 18px; border-radius: 15px; font-size: 14px; 
-            color: #ffeaa7; margin-bottom: 25px; border-left: 5px solid #55efc4; text-align: left; line-height: 1.6; 
-        }
-        .status-label { font-size: 11px; text-transform: uppercase; opacity: 0.7; color: white; margin-bottom: 5px; display: block; }
-
-        .btn-approve { 
-            width: 100%; padding: 16px; border-radius: 15px; border: none; background: #00b894; 
-            color: white; font-weight: bold; cursor: pointer; font-size: 16px; 
-            box-shadow: 0 5px 20px rgba(0, 184, 148, 0.4); transition: 0.3s; 
-        }
-        .btn-approve:hover { background: #009476; transform: translateY(-2px); }
-        
-        .btn-exit { 
-            background: none; border: none; color: white; opacity: 0.5; cursor: pointer; 
-            margin-top: 25px; font-size: 13px; text-decoration: underline; 
-        }
+        body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: sans-serif; color: white; }
+        .glass-card { background: rgba(0,0,0,0.8); padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 350px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        h1 { color: #55efc4; font-size: 50px; margin: 10px 0; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; }
+        button { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-check { background: #55efc4; color: #000; }
+        .btn-absent { background: #ff7675; color: #fff; }
     </style>
 </head>
 <body>
     <div class="glass-card">
-        <h2>CỔNG PHỤ HUYNH</h2>
-        
-        <div id="p-student-name" class="info-name">Đang tải...</div>
-        <div id="p-student-id" class="info-id">ID: --</div>
-        
-        <button id="p-student-score-btn" class="btn-score">Điểm: --</button>
-        
-        <div class="status-box">
-            <span class="status-label">Trạng thái của con:</span>
-            <div id="p-student-status">Đang kiểm tra dữ liệu...</div>
+        <h2 id="st-name">ĐANG TẢI...</h2>
+        <h1 id="st-score">--</h1>
+        <p>ĐIỂM RÈN LUYỆN</p>
+        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px;">
+            Trạng thái: <b id="st-status">...</b>
         </div>
-
-        <!-- Vùng này chỉ hiện khi có đơn xin nghỉ chưa duyệt -->
-        <div id="parent-action-zone" style="display: none; margin-top: 10px; animation: slideUp 0.4s ease;">
-            <p style="font-size: 12px; color: #fff; margin-bottom: 12px; opacity: 0.9;">
-                ⚠️ Hệ thống ghi nhận đơn xin nghỉ từ con:
-            </p>
-            <button class="btn-approve" onclick="duyetDon()">✓ XÁC NHẬN CHO CON NGHỈ</button>
-        </div>
-
-        <button class="btn-exit" onclick="window.location.href='index.html'">Thoát hệ thống</button>
+        <button class="btn-check" onclick="diemDanh()">BẤM ĐIỂM DANH NHANH</button>
+        <hr>
+        <input type="text" id="ly-do" placeholder="Lý do xin nghỉ...">
+        <button class="btn-absent" onclick="guiDon()">GỬI ĐƠN XIN NGHỈ</button>
     </div>
 
-    <!-- Firebase & Logic -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- Đảm bảo file firebase.config.js của bạn chứa firebase.initializeApp(config) và const database = firebase.database() -->
-    <script src="firebase.config.js"></script>
-    <script src="script.js"></script>
-
+    <script src="firebase-config.js"></script>
     <script>
-        // Cập nhật ID hiển thị trên giao diện phụ huynh
-        const urlParamsPH = new URLSearchParams(window.location.search);
-        const displayID = urlParamsPH.get('id') || '--';
-        document.getElementById('p-student-id').innerText = "ID: " + displayID;
+        // Lắng nghe dữ liệu realtime
+        database.ref('users/' + currentID).on('value', snap => {
+            const d = snap.val();
+            if(d) {
+                document.getElementById('st-name').innerText = d.ten;
+                document.getElementById('st-score').innerText = d.diem_ren_luyen || 0;
+                document.getElementById('st-status').innerText = d.trang_thai || "Ngoại tuyến";
+            }
+        });
+
+        function diemDanh() {
+            const gio = new Date().getHours() + ":" + new Date().getMinutes();
+            database.ref('users/' + currentID).update({
+                trang_thai: "Đã có mặt",
+                gio_diem_danh: gio
+            }).then(() => alert("Điểm danh thành công lúc " + gio));
+        }
+
+        function guiDon() {
+            const reason = document.getElementById('ly-do').value;
+            if(!reason) return alert("Vui lòng nhập lý do");
+            const ten = document.getElementById('st-name').innerText;
+            
+            // Đẩy vào nhánh xin_nghi cho giáo viên xem
+            database.ref('xin_nghi/' + currentID).set({
+                ten: ten,
+                ly_do: reason,
+                thoi_gian: new Date().toLocaleString()
+            });
+            // Cập nhật trạng thái chờ
+            database.ref('users/' + currentID).update({ trang_thai: "Đang xin nghỉ..." });
+            alert("Đã gửi đơn!");
+        }
     </script>
 </body>
 </html>
