@@ -5,7 +5,7 @@
     <title>Phụ Huynh - Smart Attendee</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- Sửa đường dẫn cho đúng tên file trên GitHub của Đạt -->
+    <!-- Sửa lỗi 404 bằng cách dùng đúng dấu chấm ở đây -->
     <script src="firebase.config.js"></script>
     <style>
         body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center;
@@ -32,12 +32,12 @@
     </div>
 
     <script>
-        // QUAN TRỌNG: Phải lấy ID từ link web (?id=HS01)
+        // Sửa lỗi "currentID is not defined" bằng cách lấy ID từ URL
         var layURL = new URLSearchParams(window.location.search);
-        var idPhuHuynh = layURL.get('id');
+        var idHocSinh = layURL.get('id');
 
-        if (idPhuHuynh && typeof database !== 'undefined') {
-            database.ref('users/' + idPhuHuynh).on('value', (snap) => {
+        if (idHocSinh && typeof database !== 'undefined') {
+            database.ref('users/' + idHocSinh).on('value', (snap) => {
                 var d = snap.val();
                 if(d) {
                     document.getElementById('p-ten').innerText = d.ten;
@@ -49,7 +49,7 @@
                 }
             });
         } else {
-            alert("Thiếu mã học sinh trên đường dẫn!");
+            document.getElementById('p-ten').innerText = "THIẾU ID";
         }
     </script>
 </body>
