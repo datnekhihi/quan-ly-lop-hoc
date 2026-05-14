@@ -2,69 +2,37 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Học Sinh - Smart Attendee</title>
+    <title>Phụ Huynh - Smart Attendee</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: sans-serif; color: white; }
-        .glass-card { background: rgba(0,0,0,0.8); padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 350px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
-        h1 { color: #55efc4; font-size: 50px; margin: 10px 0; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; }
-        button { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-check { background: #55efc4; color: #000; }
-        .btn-absent { background: #ff7675; color: #fff; }
+        body { background: #0984e3; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; color: black; padding: 25px; border-radius: 20px; width: 300px; text-align: center; }
+        .status-badge { background: #fdcb6e; padding: 10px; border-radius: 10px; display: block; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="glass-card">
-        <h2 id="st-name">ĐANG TẢI...</h2>
-        <h1 id="st-score">--</h1>
-        <p>ĐIỂM RÈN LUYỆN</p>
-        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 20px;">
-            Trạng thái: <b id="st-status">...</b>
+    <div class="card">
+        <h3>GIÁM SÁT HỌC SINH</h3>
+        <h2 id="p-ten">...</h2>
+        <p>Điểm hiện tại: <b id="p-diem">0</b></p>
+        <div class="status-badge">
+            Trạng thái: <br><b id="p-status">...</b>
         </div>
-        <button class="btn-check" onclick="diemDanh()">BẤM ĐIỂM DANH NHANH</button>
-        <hr>
-        <input type="text" id="ly-do" placeholder="Lý do xin nghỉ...">
-        <button class="btn-absent" onclick="guiDon()">GỬI ĐƠN XIN NGHỈ</button>
+        <p style="font-size: 12px; color: gray; margin-top: 20px;">Lần điểm danh cuối: <span id="p-gio">--</span></p>
     </div>
 
     <script src="firebase-config.js"></script>
     <script>
-        // Lắng nghe dữ liệu realtime
         database.ref('users/' + currentID).on('value', snap => {
             const d = snap.val();
             if(d) {
-                document.getElementById('st-name').innerText = d.ten;
-                document.getElementById('st-score').innerText = d.diem_ren_luyen || 0;
-                document.getElementById('st-status').innerText = d.trang_thai || "Ngoại tuyến";
+                document.getElementById('p-ten').innerText = d.ten;
+                document.getElementById('p-diem').innerText = d.diem_ren_luyen;
+                document.getElementById('p-status').innerText = d.trang_thai;
+                document.getElementById('p-gio').innerText = d.gio_diem_danh || "Chưa có";
             }
         });
-
-        function diemDanh() {
-            const gio = new Date().getHours() + ":" + new Date().getMinutes();
-            database.ref('users/' + currentID).update({
-                trang_thai: "Đã có mặt",
-                gio_diem_danh: gio
-            }).then(() => alert("Điểm danh thành công lúc " + gio));
-        }
-
-        function guiDon() {
-            const reason = document.getElementById('ly-do').value;
-            if(!reason) return alert("Vui lòng nhập lý do");
-            const ten = document.getElementById('st-name').innerText;
-            
-            // Đẩy vào nhánh xin_nghi cho giáo viên xem
-            database.ref('xin_nghi/' + currentID).set({
-                ten: ten,
-                ly_do: reason,
-                thoi_gian: new Date().toLocaleString()
-            });
-            // Cập nhật trạng thái chờ
-            database.ref('users/' + currentID).update({ trang_thai: "Đang xin nghỉ..." });
-            alert("Đã gửi đơn!");
-        }
     </script>
 </body>
 </html>
