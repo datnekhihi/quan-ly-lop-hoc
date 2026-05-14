@@ -1,15 +1,15 @@
 const firebaseConfig = {
-    apiKey: "AIzaSy...", // Thay bằng key của bạn
-    authDomain: "quanly-428c3.firebaseapp.com",
-    databaseURL: "https://quanly-428c3-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "quanly-428c3",
-    storageBucket: "quanly-428c3.appspot.com",
-    messagingSenderId: "...",
-    appId: "..."
+  apiKey: "AIzaSyBuwC_mqQ0uO-5NSHLIJ5wq11dB-2kIop8",
+  authDomain: "quanly-428c3.firebaseapp.com",
+  databaseURL: "https://quanly-428c3-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "quanly-428c3",
+  storageBucket: "quanly-428c3.firebasestorage.app",
+  messagingSenderId: "1061659403130",
+  appId: "1:1061659403130:web:1a2a23280aae1de0d3ecc3"
 };
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
 
-// Hàm lấy ID từ URL (?id=HS01)
-const urlParams = new URLSearchParams(window.location.search);
-const currentID = urlParams.get('id');
+// Khởi tạo Firebase nếu chưa có
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const database = firebase.database();
