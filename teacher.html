@@ -12,13 +12,14 @@
         .card { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); width: 300px; }
         .list-card { flex: 1; min-width: 400px; }
         input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
-        button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 5px; }
         .btn-main { width: 100%; background: #55efc4; margin-top: 10px; padding: 12px; color: #000; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #444; font-size: 14px; }
-        .btn-del { background: #ff7675; color: white; margin-left: 5px; }
-        .btn-plus { background: #55efc4; color: #000; margin-right: 2px; }
+        .btn-del { background: #ff7675; color: white; }
+        .btn-plus { background: #55efc4; color: #000; }
         .btn-minus { background: #ffeaa7; color: #000; }
+        .btn-approve { background: #00b894; color: white; width: 100%; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -49,50 +50,71 @@
     </div>
 
     <script>
-     database.ref('users').on('value', (snap) => {
-    var list = document.getElementById('student-list');
-    list.innerHTML = "";
-    snap.forEach((child) => {
-        var s = child.val();
-        var key = child.key;
-        if(key.startsWith('HS')) { 
-            // Hiển thị lý do nếu có đơn chờ duyệt
-            var note = s.ly_do ? `<br><small style="color:#ffeaa7">📝 Lý do: ${s.ly_do}</small>` : "";
-            var btnDuyet = s.ly_do ? `<button onclick="pheDuyet('${key}')" style="background:#00b894; color:white; margin-right:5px">DUYỆT</button>` : "";
+        // Hàm thêm học sinh - Sửa lỗi "not defined" trong image_7583e0.jpg
+        function themHocSinh() {
+            var id = document.getElementById('hs_id').value.trim();
+            var ten = document.getElementById('hs_name').value.trim();
+            if(!id || !ten) return alert("Vui lòng nhập đủ thông tin!");
 
-            var row = `<tr>
-                <td>${key}</td>
-                <td>${s.ten} ${note}</td>
-                <td>${s.trang_thai || "---"}</td>
-                <td style="font-weight:bold; color:#55efc4">${s.diem_ren_luyen || 0}</td>
-                <td>
-                    ${btnDuyet}
-                    <button class="btn-plus" onclick="changeScore('${key}', 1)">+</button>
-                    <button class="btn-minus" onclick="changeScore('${key}', -1)">-</button>
-                    <button class="btn-del" onclick="xoaHS('${key}')">Xóa</button>
-                </td>
-            </tr>`;
-            list.innerHTML += row;
+            database.ref('users/' + id).set({
+                ten: ten,
+                diem_ren_luyen: 100,
+                trang_thai: "Chưa điểm danh"
+            }).then(() => {
+                alert("Đã thêm học sinh " + ten);
+                document.getElementById('hs_id').value = "";
+                document.getElementById('hs_name').value = "";
+            });
         }
-    });
-});
 
-function pheDuyet(idHS) {
-    if(confirm("Xác nhận duyệt đơn cho học sinh này?")) {
-        database.ref('users/' + idHS).update({
-            trang_thai: "Đã duyệt",
-            ly_do: null // Xóa lý do sau khi duyệt xong
+        // Lắng nghe dữ liệu
+        database.ref('users').on('value', (snap) => {
+            var list = document.getElementById('student-list');
+            list.innerHTML = "";
+            snap.forEach((child) => {
+                var s = child.val();
+                var key = child.key;
+                
+                // Hiển thị lý do và nút duyệt nếu có đơn
+                var lyDoHienThi = s.ly_do ? `<br><small style="color:#ffeaa7">📝 ${s.ly_do}</small>` : "";
+                var nutDuyet = s.ly_do ? `<button class="btn-approve" onclick="pheDuyet('${key}')">DUYỆT NGHỈ</button>` : "";
+
+                var row = `<tr>
+                    <td>${key}</td>
+                    <td><b>${s.ten}</b>${lyDoHienThi}</td>
+                    <td>${s.trang_thai || "---"}</td>
+                    <td style="font-weight:bold; color:#55efc4">${s.diem_ren_luyen || 0}</td>
+                    <td>
+                        ${nutDuyet}
+                        <button class="btn-plus" onclick="changeScore('${key}', 1)">+</button>
+                        <button class="btn-minus" onclick="changeScore('${key}', -1)">-</button>
+                        <button class="btn-del" onclick="xoaHS('${key}')">Xóa</button>
+                    </td>
+                </tr>`;
+                list.innerHTML += row;
+            });
         });
-    }
-}
 
-function changeScore(idHS, amount) {
-    const studentRef = database.ref('users/' + idHS + '/diem_ren_luyen');
-    studentRef.once('value').then((snapshot) => {
-        let currentScore = snapshot.val() || 0;
-        studentRef.set(currentScore + amount);
-    });
-}
+        function pheDuyet(idHS) {
+            database.ref('users/' + idHS).update({
+                trang_thai: "Đã duyệt nghỉ",
+                ly_do: null // Xóa lý do sau khi duyệt xong
+            });
+        }
+
+        function changeScore(idHS, amount) {
+            const studentRef = database.ref('users/' + idHS + '/diem_ren_luyen');
+            studentRef.once('value').then((snapshot) => {
+                let currentScore = snapshot.val() || 0;
+                studentRef.set(currentScore + amount);
+            });
+        }
+
+        function xoaHS(id) {
+            if(confirm("Xóa học sinh " + id + "?")) {
+                database.ref('users/' + id).remove();
+            }
+        }
     </script>
 </body>
 </html>
