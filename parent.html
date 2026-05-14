@@ -5,22 +5,21 @@
     <title>Phụ Huynh - Smart Attendee</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="/quan-ly-lop-hoc/firebase.config.js"></script>
+    <!-- Sửa đường dẫn cho đúng tên file trên GitHub của Đạt -->
+    <script src="firebase.config.js"></script>
     <style>
-        /* CSS y hệt file student bên trên để giữ đồng bộ giao diện cũ */
         body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center;
                background: url('https://static.vinwonders.com/2023/02/kinh-thanh-hue-4.jpg') no-repeat center center fixed; background-size: cover; font-family: sans-serif; }
         .glass-card { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(15px); padding: 40px; border-radius: 25px; 
-                      color: white;background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4)), 
-                        var(--url-anh-nen) no-repeat center center fixed; text-align: center; width: 350px; border: 1px solid rgba(85, 239, 196, 0.4); }
+                      color: white; text-align: center; width: 350px; border: 1px solid rgba(85, 239, 196, 0.4); }
         .status-box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin: 20px 0; }
-        h2 { color: #55efc4; margin: 0; }
-        .btn-exit { background: #636e72; color: #fff; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        h2 { color: #55efc4; margin: 0; text-transform: uppercase; }
+        .btn-exit { background: #636e72; color: #fff; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="glass-card">
-        <p style="opacity: 0.7;">GIÁM SÁT HỌC SINH</p>
+        <p style="opacity: 0.7; letter-spacing: 1px;">GIÁM SÁT HỌC SINH</p>
         <h2 id="p-ten">ĐANG TẢI...</h2>
         
         <div class="status-box">
@@ -32,17 +31,26 @@
         <button class="btn-exit" onclick="window.location.href='index.html'">THOÁT</button>
     </div>
 
-    <script src="firebase-config.js"></script>
     <script>
-        database.ref('users/' + currentID).on('value', (snap) => {
-            const d = snap.val();
-            if(d) {
-                document.getElementById('p-ten').innerText = d.ten;
-                document.getElementById('p-status').innerText = d.trang_thai || "Ngoại tuyến";
-                document.getElementById('p-diem').innerText = d.diem_ren_luyen || 0;
-                document.getElementById('p-gio').innerText = d.gio_diem_danh || "--";
-            }
-        });
+        // QUAN TRỌNG: Phải lấy ID từ link web (?id=HS01)
+        var layURL = new URLSearchParams(window.location.search);
+        var idPhuHuynh = layURL.get('id');
+
+        if (idPhuHuynh && typeof database !== 'undefined') {
+            database.ref('users/' + idPhuHuynh).on('value', (snap) => {
+                var d = snap.val();
+                if(d) {
+                    document.getElementById('p-ten').innerText = d.ten;
+                    document.getElementById('p-status').innerText = d.trang_thai || "Ngoại tuyến";
+                    document.getElementById('p-diem').innerText = d.diem_ren_luyen || 0;
+                    document.getElementById('p-gio').innerText = new Date().toLocaleTimeString('vi-VN');
+                } else {
+                    document.getElementById('p-ten').innerText = "KHÔNG TÌM THẤY";
+                }
+            });
+        } else {
+            alert("Thiếu mã học sinh trên đường dẫn!");
+        }
     </script>
 </body>
 </html>
